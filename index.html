@@ -26,10 +26,16 @@
             </div>
             <div class="nav-actions">
                 <a href="tel:+998915454442" class="nav-phone">+998 91 545 44 42</a>
-                <div class="lang-switcher">
-                    <button class="lang-btn" onclick="setLanguage('ru')">RU</button>
-                    <button class="lang-btn" onclick="setLanguage('uz')">UZ</button>
-                    <button class="lang-btn" onclick="setLanguage('en')">EN</button>
+                <div class="lang-dropdown" id="lang-dropdown">
+                    <div class="lang-current" onclick="toggleLangDropdown(event)">
+                        <span id="current-lang-label">RU</span>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </div>
+                    <div class="lang-options">
+                        <div class="lang-option" onclick="selectLanguage('ru')">Русский</div>
+                        <div class="lang-option" onclick="selectLanguage('uz')">O'zbekcha</div>
+                        <div class="lang-option" onclick="selectLanguage('en')">English</div>
+                    </div>
                 </div>
             </div>
         </div>

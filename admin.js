@@ -35,9 +35,23 @@ const T_ADMIN = {
 
 let currentLang = 'ru';
 
+function toggleAdminLangDropdown(e) {
+    e.stopPropagation();
+    document.getElementById('admin-lang-dropdown').classList.toggle('active');
+}
+
+function selectAdminLanguage(lang) {
+    setAdminLanguage(lang);
+    document.getElementById('current-admin-lang-label').innerText = lang.toUpperCase();
+    document.getElementById('admin-lang-dropdown').classList.remove('active');
+}
+
 function setAdminLanguage(lang) {
     currentLang = lang;
-    document.querySelectorAll('.lang-btn-admin').forEach(btn => btn.classList.toggle('active', btn.id === `btn-${lang}`));
+    document.querySelectorAll('.lang-option').forEach(opt => {
+        const isTarget = opt.getAttribute('onclick').includes(`'${lang}'`);
+        opt.classList.toggle('active', isTarget);
+    });
     
     document.getElementById('btn-to-site').innerText = T_ADMIN[lang].toSite;
     document.querySelector('button[onclick*="openAddModal"]').innerText = T_ADMIN[lang].addProduct;
@@ -323,4 +337,5 @@ window.onclick = (e) => {
     const cModal = document.getElementById('category-modal');
     if (e.target === pModal) closeAdminModal(); 
     if (e.target === cModal) closeCategoryModal();
+    document.getElementById('admin-lang-dropdown').classList.remove('active');
 }

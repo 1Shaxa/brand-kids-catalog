@@ -46,9 +46,23 @@ async function loadAppData() {
     }
 }
 
+function toggleLangDropdown(e) {
+    e.stopPropagation();
+    document.getElementById('lang-dropdown').classList.toggle('active');
+}
+
+function selectLanguage(lang) {
+    setLanguage(lang);
+    document.getElementById('current-lang-label').innerText = lang.toUpperCase();
+    document.getElementById('lang-dropdown').classList.remove('active');
+}
+
 function setLanguage(lang) {
     LANG = lang;
-    document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.toggle('active', btn.innerText.toLowerCase() === lang));
+    document.querySelectorAll('.lang-option').forEach(opt => {
+        const isTarget = opt.getAttribute('onclick').includes(`'${lang}'`);
+        opt.classList.toggle('active', isTarget);
+    });
     
     document.getElementById('nav-all').innerText = T[lang].all;
     document.getElementById('nav-boys').innerText = T[lang].boys;
@@ -149,7 +163,10 @@ function openProduct(id) {
 }
 
 closeBtn.onclick = () => modal.classList.remove('active');
-window.onclick = (e) => { if (e.target === modal) modal.classList.remove('active'); }
+window.onclick = (e) => { 
+    if (e.target === modal) modal.classList.remove('active');
+    document.getElementById('lang-dropdown').classList.remove('active');
+}
 
 // Initial Load
 loadAppData();

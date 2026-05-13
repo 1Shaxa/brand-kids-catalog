@@ -39,10 +39,16 @@
                     <span class="admin-badge">Admin</span>
                 </div>
                 <div class="nav-actions">
-                    <div class="lang-switcher" style="margin-right: 20px;">
-                        <button onclick="setAdminLanguage('ru')" class="lang-btn-admin active" id="btn-ru">RU</button>
-                        <button onclick="setAdminLanguage('uz')" class="lang-btn-admin" id="btn-uz">UZ</button>
-                        <button onclick="setAdminLanguage('en')" class="lang-btn-admin" id="btn-en">EN</button>
+                    <div class="lang-dropdown" id="admin-lang-dropdown" style="margin-right: 20px;">
+                        <div class="lang-current" onclick="toggleAdminLangDropdown(event)">
+                            <span id="current-admin-lang-label">RU</span>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                        </div>
+                        <div class="lang-options">
+                            <div class="lang-option" onclick="selectAdminLanguage('ru')">Русский</div>
+                            <div class="lang-option" onclick="selectAdminLanguage('uz')">O'zbekcha</div>
+                            <div class="lang-option" onclick="selectAdminLanguage('en')">English</div>
+                        </div>
                     </div>
                     <button onclick="location.href='index.html'" class="btn-link" style="margin-right: 20px;" id="btn-to-site">На сайт</button>
                     <button onclick="openAddModal(); event.stopPropagation();" class="btn-primary">+ Добавить товар</button>
