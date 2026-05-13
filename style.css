@@ -22,7 +22,7 @@
 .nav-logo {
     height: 100%;
     object-fit: contain;
-    border-radius: 50%; /* Логотип круглый */
+    border-radius: 8px;
 }
 
 * {
@@ -466,9 +466,14 @@ body {
 }
 
 .footer-logo {
-    height: 60px;
+    height: 70px;
+    width: auto;
     margin-bottom: 24px;
-    border-radius: 50%;
+    border-radius: 16px; /* Мягкие углы вместо круга */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border: 1px solid rgba(122,29,77,0.05);
+    background: white;
+    padding: 5px;
 }
 
 .brand-col p {
