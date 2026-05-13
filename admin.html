@@ -3,225 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brand Kids — Админ-панель</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="admin.css">
+    <title>Dashboard | Brand Kids</title>
     <link rel="icon" type="image/jpeg" href="logo.jpg">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="admin.css">
+    <script src="https://unpkg.com/supabase-js@2"></script>
 </head>
-<body class="admin-body">
+<body>
     <!-- Login Screen -->
-    <div id="login-screen" class="admin-login-overlay">
+    <div id="login-screen">
         <div class="login-card">
-            <img src="logo.jpg" alt="Logo" class="login-logo">
-            <h2>Вход в панель управления</h2>
-            <div class="input-group">
-                <input type="text" id="admin-user" placeholder="Логин">
-            </div>
-            <div class="input-group">
-                <input type="password" id="admin-pass" placeholder="Пароль">
-            </div>
-            <button onclick="checkLogin()" class="btn-primary">Войти</button>
-            <p id="login-error" class="error-msg"></p>
-            <div class="login-footer">
-                <a href="index.html" class="btn-link">← Вернуться на сайт</a>
-            </div>
+            <h2>Admin Login</h2>
+            <input type="text" id="admin-user" placeholder="Username">
+            <input type="password" id="admin-pass" placeholder="Password">
+            <button onclick="checkLogin()" class="btn-primary" style="width: 100%;">Войти в панель</button>
+            <p id="login-error" style="color: red; margin-top: 15px; font-size: 13px;"></p>
         </div>
     </div>
 
-    <!-- Admin Dashboard (Hidden initially) -->
-    <div id="admin-dashboard" style="display: none;">
-        <nav class="navbar admin-nav">
-            <div class="container nav-inner">
-                <div class="logo-wrap" onclick="location.href='index.html'" style="cursor: pointer;">
-                    <img src="logo.jpg" alt="Logo" class="nav-logo">
-                    <span class="admin-badge">Admin</span>
+    <!-- Main Dashboard -->
+    <div id="admin-dashboard" style="display: none; display: flex; width: 100%;">
+        <aside class="sidebar">
+            <div class="sidebar-brand">Brand Kids</div>
+            <nav class="sidebar-nav">
+                <div onclick="showTab('inventory')" class="nav-item active" id="tab-inv">Инвентарь</div>
+                <div onclick="showTab('categories')" class="nav-item" id="tab-cat">Категории</div>
+                <div onclick="showTab('settings')" class="nav-item" id="tab-set">Настройки</div>
+                <div class="nav-item" onclick="location.href='index.html'">На сайт →</div>
+                <div class="nav-item" onclick="logout()" style="margin-top: auto; color: #ff4d4f;">Выход</div>
+            </nav>
+        </aside>
+
+        <div class="main-wrapper">
+            <header class="top-bar">
+                <div class="search-area">
+                    <input type="text" placeholder="Поиск по инвентарю..." oninput="handleAdminSearch(this.value)" style="padding: 10px; border: 1px solid #eee; width: 300px;">
                 </div>
-                <div class="nav-actions">
-                    <div class="lang-dropdown" id="admin-lang-dropdown" style="margin-right: 20px;">
-                        <div class="lang-current" onclick="toggleAdminLangDropdown(event)">
-                            <span id="current-admin-lang-label">RU</span>
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                        </div>
-                        <div class="lang-options">
-                            <div class="lang-option" onclick="selectAdminLanguage('ru')">Русский</div>
-                            <div class="lang-option" onclick="selectAdminLanguage('uz')">O'zbekcha</div>
-                            <div class="lang-option" onclick="selectAdminLanguage('en')">English</div>
-                        </div>
+                <div class="admin-actions">
+                    <button onclick="openAddModal()" class="btn-primary">+ Новый товар</button>
+                </div>
+            </header>
+
+            <main class="content-body">
+                <!-- Inventory Tab -->
+                <div id="tab-inventory-content">
+                    <div class="page-header">
+                        <h1>Инвентарь</h1>
                     </div>
-                    <button onclick="location.href='index.html'" class="btn-link" style="margin-right: 20px;" id="btn-to-site">На сайт</button>
-                    <button onclick="openAddModal(); event.stopPropagation();" class="btn-primary">+ Добавить товар</button>
-                    <button onclick="logout(); event.stopPropagation();" class="btn-link">Выйти</button>
-                </div>
-            </div>
-        </nav>
-
-        <main class="container admin-main">
-            <div class="admin-tabs">
-                <button onclick="showTab('inventory')" class="tab-btn active" id="tab-inv">Инвентарь</button>
-                <button onclick="showTab('categories')" class="tab-btn" id="tab-cat">Категории</button>
-                <button onclick="showTab('settings')" class="tab-btn" id="tab-set">Настройки сайта</button>
-            </div>
-
-            <!-- Inventory Tab -->
-            <div id="tab-inventory-content">
-                <div class="admin-header">
-                    <h1 id="inv-title">Управление инвентарем</h1>
-                    <p id="inv-desc">Добавляйте товары и меняйте наличие размеров.</p>
-                </div>
-                <div class="inventory-list" id="inventory-list"></div>
-            </div>
-
-            <!-- Categories Tab -->
-            <div id="tab-categories-content" style="display: none;">
-                <div class="admin-header">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <h1 id="cat-title">Категории одежды</h1>
-                            <p id="cat-desc">Управление типами одежды (Брюки, Обувь и т.д.)</p>
-                        </div>
-                        <button onclick="openCategoryModal()" class="btn-primary" id="btn-add-cat">+ Добавить категорию</button>
+                    <div class="card">
+                        <table class="inventory-table">
+                            <thead>
+                                <tr>
+                                    <th>Фото</th>
+                                    <th>Название</th>
+                                    <th>Раздел</th>
+                                    <th>Размеры</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventory-list">
+                                <!-- Loaded via JS -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                
-                <div class="category-list" id="category-list">
-                    <!-- Categories will be listed here -->
-                </div>
-            </div>
 
-            <!-- Category Modal -->
-            <div class="modal-overlay" id="category-modal">
-                <div class="modal-content admin-modal small-modal">
-                    <button class="close-modal" onclick="closeCategoryModal()">&times;</button>
-                    <div class="modal-header">
-                        <h2>Добавить категорию</h2>
+                <!-- Categories Tab -->
+                <div id="tab-categories-content" style="display: none;">
+                    <div class="page-header">
+                        <h1>Категории</h1>
+                        <button onclick="openCategoryModal()" class="btn-outline">+ Добавить категорию</button>
                     </div>
-                    <form id="category-form" class="admin-form" onsubmit="addCategory(event)">
-                        <label>Название на русском</label>
-                        <input type="text" id="cat-name-ru" placeholder="Напр: Брюки" required>
-                        <label>Название на узбекском</label>
-                        <input type="text" id="cat-name-uz" placeholder="Nas: Shimlar" required>
-                        <label>Название на английском</label>
-                        <input type="text" id="cat-name-en" placeholder="Ex: Pants" required>
+                    <div class="card" id="category-list">
+                        <!-- Loaded via JS -->
+                    </div>
+                </div>
+
+                <!-- Settings Tab -->
+                <div id="tab-settings-content" style="display: none;">
+                    <div class="page-header">
+                        <h1>Настройки сайта</h1>
+                    </div>
+                    <form id="settings-form" class="admin-form card">
+                        <label>Заголовок Hero (RU / UZ / EN)</label>
+                        <input type="text" id="set-title-ru" placeholder="RU">
+                        <input type="text" id="set-title-uz" placeholder="UZ">
+                        <input type="text" id="set-title-en" placeholder="EN">
                         
-                        <div class="form-footer" style="margin-top: 20px;">
-                            <button type="submit" class="btn-primary" style="width: 100%;">Сохранить категорию</button>
-                        </div>
+                        <label>Описание Hero (RU / UZ / EN)</label>
+                        <textarea id="set-desc-ru" placeholder="RU"></textarea>
+                        <textarea id="set-desc-uz" placeholder="UZ"></textarea>
+                        <textarea id="set-desc-en" placeholder="EN"></textarea>
+                        
+                        <button type="button" onclick="saveSettings()" class="btn-primary">Сохранить изменения</button>
                     </form>
                 </div>
-            </div>
-
-            <!-- Settings Tab -->
-            <div id="tab-settings-content" style="display: none;">
-                <div class="admin-header">
-                    <h1 id="set-title-h1">Настройки и Безопасность</h1>
-                    <p id="set-desc-p">Управление контентом сайта и доступом к панели.</p>
-                </div>
-
-                <!-- Security Section -->
-                <div class="card-form admin-form" style="margin-bottom: 30px; border-left: 4px solid var(--accent);">
-                    <h2 style="margin-bottom: 20px;">🛡️ Безопасность и Доступ</h2>
-                    <div class="form-grid">
-                        <div class="form-section">
-                            <h3>Смена логина и пароля</h3>
-                            <label>Новый логин</label>
-                            <input type="text" id="new-admin-user" placeholder="Новый логин">
-                            <label>Новый пароль</label>
-                            <input type="password" id="new-admin-pass" placeholder="Новый пароль">
-                            <button onclick="changeAdminCredentials()" class="btn-primary" style="margin-top: 15px; width: 100%;">Обновить данные входа</button>
-                            <p style="font-size: 11px; color: #999; margin-top: 10px;">* Внимание: для работы этой функции необходимо запустить SQL-скрипт в Supabase.</p>
-                        </div>
-                        <div class="form-section">
-                            <h3>Активные устройства</h3>
-                            <div id="session-list" class="session-list">
-                                <p style="color: #999; font-size: 13px;">Загрузка списка устройств...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Content Section -->
-                <form id="settings-form" class="admin-form card-form">
-                    <h2 style="margin-bottom: 20px;">📝 Контент главной страницы</h2>
-                    <div class="form-grid">
-                        <div class="form-section">
-                            <h3 id="set-hero-title">Заголовок (Hero Title)</h3>
-                            <input type="text" id="set-title-ru" placeholder="RU">
-                            <input type="text" id="set-title-uz" placeholder="UZ">
-                            <input type="text" id="set-title-en" placeholder="EN">
-                        </div>
-                        <div class="form-section">
-                            <h3 id="set-hero-desc">Описание (Hero Description)</h3>
-                            <textarea id="set-desc-ru" placeholder="RU"></textarea>
-                            <textarea id="set-desc-uz" placeholder="UZ"></textarea>
-                            <textarea id="set-desc-en" placeholder="EN"></textarea>
-                        </div>
-                    </div>
-                    <button type="button" onclick="saveSettings()" class="btn-primary" id="btn-save-settings">Сохранить настройки контента</button>
-                </form>
-            </div>
-        </main>
+            </main>
+        </div>
     </div>
 
-    <!-- Add/Edit Product Modal -->
-    <div class="modal-overlay" id="product-modal">
-        <div class="modal-content admin-modal">
-            <button class="close-modal" onclick="closeAdminModal()">&times;</button>
-            <div class="modal-header">
-                <h2 id="modal-type-title">Добавить новый товар</h2>
+    <!-- Modals (Add Product) -->
+    <div class="modal-overlay" id="product-modal" style="display:none; position:fixed; inset:0; z-index:1000; align-items:center; justify-content:center;">
+        <div class="admin-modal card" style="width: 100%; max-width: 900px; max-height: 90vh; overflow-y: auto;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+                <h2 id="modal-type-title">Товар</h2>
+                <button onclick="closeAdminModal()" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
             </div>
             <form id="product-form" class="admin-form">
                 <input type="hidden" id="edit-id">
-                <div class="form-grid">
-                    <div class="form-section">
-                        <label>Название (RU / UZ / EN)</label>
-                        <input type="text" id="name-ru" placeholder="Русский" required>
-                        <input type="text" id="name-uz" placeholder="O'zbekcha" required>
-                        <input type="text" id="name-en" placeholder="English" required>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:30px;">
+                    <div>
+                        <label>Название RU</label><input type="text" id="name-ru" required>
+                        <label>Название UZ</label><input type="text" id="name-uz" required>
+                        <label>Название EN</label><input type="text" id="name-en" required>
                         
-                        <label>Раздел (Мальчики/Девочки...)</label>
+                        <label>Раздел</label>
                         <select id="prod-category">
                             <option value="boys">Мальчики</option>
                             <option value="girls">Девочки</option>
                             <option value="baby">Малыши</option>
                         </select>
-
-                        <label>Тип одежды (Подкатегория)</label>
-                        <select id="prod-sub-category">
-                            <!-- Categories will be loaded from DB -->
-                        </select>
-
-                        <label>Описание (RU / UZ / EN)</label>
-                        <textarea id="desc-ru" placeholder="RU"></textarea>
-                        <textarea id="desc-uz" placeholder="UZ"></textarea>
-                        <textarea id="desc-en" placeholder="EN"></textarea>
+                        
+                        <label>Категория</label>
+                        <select id="prod-sub-category"></select>
                     </div>
-                    <div class="form-section">
-                        <label>Размеры</label>
-                        <div class="size-presets">
-                            <button type="button" onclick="usePreset('sml')">S/M/L/XL</button>
-                            <button type="button" onclick="usePreset('age')">Возраст</button>
-                            <button type="button" onclick="usePreset('height')">Рост</button>
-                        </div>
-                        <input type="text" id="prod-sizes" placeholder="Введите через запятую: S, M, L или 86, 92">
-                        <p class="input-hint">Кликните пресет или введите вручную через запятую.</p>
-
-                        <label>Фотографии товара (до 4-х)</label>
+                    <div>
+                        <label>Размеры (через запятую)</label>
+                        <input type="text" id="prod-sizes">
+                        
+                        <label>Фотографии (Главное и доп. ракурсы)</label>
                         <div class="multi-upload-grid">
-                            <div class="img-preview" onclick="document.getElementById('img-1').click()" id="preview-1"><span>Главное</span></div>
-                            <div class="img-preview" onclick="document.getElementById('img-2').click()" id="preview-2"><span>Фото 2</span></div>
-                            <div class="img-preview" onclick="document.getElementById('img-3').click()" id="preview-3"><span>Фото 3</span></div>
-                            <div class="img-preview" onclick="document.getElementById('img-4').click()" id="preview-4"><span>Фото 4</span></div>
+                            <div class="img-preview" id="preview-1" onclick="document.getElementById('img-1').click()"><span>+</span></div>
+                            <div class="img-preview" id="preview-2" onclick="document.getElementById('img-2').click()"><span>+</span></div>
+                            <div class="img-preview" id="preview-3" onclick="document.getElementById('img-3').click()"><span>+</span></div>
+                            <div class="img-preview" id="preview-4" onclick="document.getElementById('img-4').click()"><span>+</span></div>
                         </div>
-                        <input type="file" id="img-1" hidden accept="image/*" onchange="previewMultiImg(event, 1)">
-                        <input type="file" id="img-2" hidden accept="image/*" onchange="previewMultiImg(event, 2)">
-                        <input type="file" id="img-3" hidden accept="image/*" onchange="previewMultiImg(event, 3)">
-                        <input type="file" id="img-4" hidden accept="image/*" onchange="previewMultiImg(event, 4)">
+                        <input type="file" id="img-1" hidden onchange="previewMultiImg(event, 1)">
+                        <input type="file" id="img-2" hidden onchange="previewMultiImg(event, 2)">
+                        <input type="file" id="img-3" hidden onchange="previewMultiImg(event, 3)">
+                        <input type="file" id="img-4" hidden onchange="previewMultiImg(event, 4)">
+                        
+                        <label>Описание RU</label><textarea id="desc-ru"></textarea>
                     </div>
                 </div>
-                <div class="form-footer">
-                    <button type="submit" class="btn-primary save-btn" id="save-product-btn">Сохранить товар</button>
+                <button type="submit" class="btn-primary" id="save-product-btn" style="width:100%; margin-top:20px;">Сохранить товар</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Category Modal -->
+    <div class="modal-overlay" id="category-modal" style="display:none; position:fixed; inset:0; z-index:1000; align-items:center; justify-content:center;">
+        <div class="card" style="width: 400px;">
+            <h2>Добавить категорию</h2>
+            <form id="category-form" onsubmit="addCategory(event)" class="admin-form" style="margin-top:20px;">
+                <input type="text" id="cat-name-ru" placeholder="RU" required>
+                <input type="text" id="cat-name-uz" placeholder="UZ" required>
+                <input type="text" id="cat-name-en" placeholder="EN" required>
+                <div style="display:flex; gap:10px;">
+                    <button type="submit" class="btn-primary">Создать</button>
+                    <button type="button" onclick="closeCategoryModal()" class="btn-outline">Отмена</button>
                 </div>
             </form>
         </div>
