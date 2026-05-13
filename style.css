@@ -285,28 +285,30 @@ footer {
     margin-bottom: 10px;
 }
 
-/* ---- Language Dropdown Premium ---- */
+/* ---- Language Dropdown Perfect List ---- */
 .lang-dropdown {
     position: relative;
-    user-select: none;
+    z-index: 1001;
 }
 
 .lang-current {
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 12px;
-    border: 1px solid var(--border);
-    transition: var(--transition);
+    gap: 8px;
+    padding: 10px 16px;
+    background: #fff;
+    border: 1px solid #000;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
 }
 
 .lang-current::after {
-    content: '↓';
+    content: '▼';
     font-size: 10px;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s;
 }
 
 .lang-dropdown.active .lang-current::after {
@@ -317,28 +319,36 @@ footer {
     position: absolute;
     top: 100%;
     right: 0;
-    background: white;
-    border: 1px solid var(--border);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    width: 140px;
+    background: #fff;
+    border: 1px solid #000;
+    margin-top: 4px;
     display: none;
-    min-width: 120px;
-    margin-top: 5px;
-    z-index: 1000;
+    flex-direction: column;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
 
 .lang-dropdown.active .lang-options {
-    display: block;
+    display: flex;
 }
 
 .lang-option {
-    padding: 12px 20px;
-    font-size: 13px;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
     cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
     transition: background 0.2s;
 }
 
+.lang-option:last-child {
+    border-bottom: none;
+}
+
 .lang-option:hover {
-    background: #f5f5f7;
+    background: #000;
+    color: #fff;
 }
 
 @media (max-width: 1024px) {

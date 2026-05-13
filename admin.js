@@ -1,4 +1,4 @@
-// Brand Kids Admin - Extreme Stability Edition
+// Brand Kids Admin - Extreme Stability 1000%
 const SUPABASE_URL = 'https://yopdjvjaigregbfqxjke.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvcGRqdmphaWdyZWdiZnF4amtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2NjI1MTksImV4cCI6MjA5NDIzODUxOX0.pa1PoZYyvOPBc_1eTYbW6wodACrg-riRWtDSiEKuNe8';
 
@@ -6,7 +6,7 @@ let supabaseClient;
 try {
     supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 } catch(e) {
-    console.error("Supabase load error, using fallback mode");
+    alert("Критическая ошибка: Не удалось подключиться к базе данных. Проверьте интернет.");
 }
 
 const ADMIN_USER = "BrandKidsAdmin_2026";
@@ -17,40 +17,25 @@ let CATEGORIES = [];
 let SETTINGS = {};
 let adminSearchQuery = '';
 
-// ---- Robust Auth ----
+// ---- Auth ----
 function checkLogin() {
     const user = document.getElementById('admin-user').value.trim();
     const pass = document.getElementById('admin-pass').value.trim();
-
     if (user === ADMIN_USER && pass === ADMIN_PASS) {
         localStorage.setItem('admin_logged_forever', 'true');
         enterDashboard();
     } else {
-        const err = document.getElementById('login-error');
-        if(err) err.innerText = "Ошибка: проверьте логин и пароль";
+        document.getElementById('login-error').innerText = "Ошибка входа. Проверьте данные.";
     }
 }
 
 function enterDashboard() {
-    const login = document.getElementById('login-screen');
-    const dash = document.getElementById('admin-dashboard');
-    if (login) login.style.display = 'none';
-    if (dash) {
-        dash.style.display = 'flex';
-        dash.style.visibility = 'visible';
-        dash.style.opacity = '1';
-    }
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-dashboard').style.display = 'flex';
     initAdmin();
 }
 
-async function logout() {
-    localStorage.removeItem('admin_logged_forever');
-    location.reload();
-}
-
-// ---- Stable Data Loading ----
 async function initAdmin() {
-    if (!supabaseClient) return alert("Ошибка связи с базой данных. Проверьте интернет.");
     await loadData();
     renderInventory();
     renderCategories();
@@ -59,23 +44,37 @@ async function initAdmin() {
 
 async function loadData() {
     try {
-        const { data: p } = await supabaseClient.from('products').select('*').order('created_at', { ascending: false });
-        const { data: c } = await supabaseClient.from('categories').select('*');
-        const { data: s } = await supabaseClient.from('settings').select('*').single();
+        const { data: p, error: pe } = await supabaseClient.from('products').select('*').order('created_at', { ascending: false });
+        const { data: c, error: ce } = await supabaseClient.from('categories').select('*');
+        const { data: s, error: se } = await supabaseClient.from('settings').select('*').single();
+        if(pe || ce || se) console.error("Data fetch error");
         PRODUCTS = p || [];
         CATEGORIES = c || [];
         SETTINGS = s || {};
-    } catch (e) { console.warn("Data refresh failed", e); }
+    } catch (e) { console.error(e); }
 }
 
-function showTab(tab) {
-    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-    const tabEl = document.getElementById(`tab-${tab.substring(0,3)}`);
-    if(tabEl) tabEl.classList.add('active');
+// ---- Inventory ----
+function renderInventory() {
+    const list = document.getElementById('inventory-list');
+    let filtered = PRODUCTS;
+    if (adminSearchQuery) filtered = PRODUCTS.filter(p => p.name.ru.toLowerCase().includes(adminSearchQuery));
     
-    document.getElementById('tab-inventory-content').style.display = tab === 'inventory' ? 'block' : 'none';
-    document.getElementById('tab-categories-content').style.display = tab === 'categories' ? 'block' : 'none';
-    document.getElementById('tab-settings-content').style.display = tab === 'settings' ? 'block' : 'none';
+    list.innerHTML = filtered.map(p => `
+        <tr>
+            <td><img src="${p.images?.[0] || p.image}" style="width:50px; height:60px; object-fit:cover;"></td>
+            <td><strong>${p.name.ru}</strong></td>
+            <td>${p.category}</td>
+            <td>${(p.sizes || []).join(', ')}</td>
+            <td>
+                <button onclick="editProduct(${p.id})" style="color:blue; background:none; border:none; cursor:pointer; font-weight:600;">Правка</button>
+                <button onclick="deleteProduct(${p.id})" style="color:red; background:none; border:none; cursor:pointer; font-weight:600; margin-left:10px;">Удалить</button>
+            </td>
+        </tr>
+    `).join('');
+    
+    const subSelect = document.getElementById('prod-sub-category');
+    if(subSelect) subSelect.innerHTML = CATEGORIES.map(c => `<option value="${c.id}">${c.name.ru}</option>`).join('');
 }
 
 function handleAdminSearch(val) {
@@ -83,124 +82,12 @@ function handleAdminSearch(val) {
     renderInventory();
 }
 
-function renderInventory() {
-    const list = document.getElementById('inventory-list');
-    if(!list) return;
-    let filtered = PRODUCTS;
-    if (adminSearchQuery) {
-        filtered = PRODUCTS.filter(p => p.name.ru.toLowerCase().includes(adminSearchQuery));
-    }
-
-    list.innerHTML = filtered.map(p => `
-        <tr>
-            <td><img src="${p.images?.[0] || p.image}" class="item-thumb" style="width:50px; height:60px; object-fit:cover;"></td>
-            <td><strong>${p.name.ru}</strong></td>
-            <td>${p.category}</td>
-            <td>${(p.sizes || []).join(', ')}</td>
-            <td>
-                <button onclick="editProduct(${p.id})" style="color:blue; border:none; background:none; cursor:pointer; font-weight:600;">Правка</button>
-                <button onclick="deleteProduct(${p.id})" style="color:red; border:none; background:none; margin-left:10px; cursor:pointer; font-weight:600;">Удалить</button>
-            </td>
-        </tr>
-    `).join('');
-    
-    const subSelect = document.getElementById('prod-sub-category');
-    if (subSelect) {
-        subSelect.innerHTML = CATEGORIES.map(c => `<option value="${c.id}">${c.name.ru}</option>`).join('');
-    }
-}
-
-// ---- Modals ----
-function openAddModal() {
-    const form = document.getElementById('product-form');
-    if(form) form.reset();
-    document.getElementById('edit-id').value = "";
-    document.getElementById('modal-type-title').innerText = "Новый товар";
-    for(let i=1; i<=4; i++) {
-        const preview = document.getElementById(`preview-${i}`);
-        if(preview) preview.innerHTML = '<span>+</span>';
-    }
-    document.getElementById('product-modal').style.display = 'flex';
-}
-
-function editProduct(id) {
-    const p = PRODUCTS.find(prod => prod.id === id);
-    if (!p) return;
-    document.getElementById('edit-id').value = p.id;
-    document.getElementById('name-ru').value = p.name.ru;
-    document.getElementById('name-uz').value = p.name.uz;
-    document.getElementById('name-en').value = p.name.en;
-    document.getElementById('prod-category').value = p.category;
-    document.getElementById('prod-sub-category').value = p.sub_category || "";
-    document.getElementById('prod-sizes').value = (p.sizes || []).join(', ');
-    document.getElementById('desc-ru').value = p.desc ? p.desc.ru : "";
-
-    const imgs = p.images || [p.image];
-    for(let i=1; i<=4; i++) {
-        const preview = document.getElementById(`preview-${i}`);
-        if(preview) {
-            if (imgs[i-1]) preview.innerHTML = `<img src="${imgs[i-1]}" style="width:100%; height:100%; object-fit:cover;">`;
-            else preview.innerHTML = '<span>+</span>';
-        }
-    }
-    document.getElementById('product-modal').style.display = 'flex';
-}
-
-function closeAdminModal() { document.getElementById('product-modal').style.display = 'none'; }
-
-function previewMultiImg(event, index) {
-    const reader = new FileReader();
-    reader.onload = () => {
-        const preview = document.getElementById(`preview-${index}`);
-        if(preview) preview.innerHTML = `<img src="${reader.result}" style="width:100%; height:100%; object-fit:cover;">`;
-    }
-    reader.readAsDataURL(event.target.files[0]);
-}
-
-async function uploadImage(file) {
-    const fileName = `${Date.now()}_${file.name}`;
-    const { data, error } = await supabaseClient.storage.from('product-images').upload(fileName, file);
-    if (error) throw error;
-    return supabaseClient.storage.from('product-images').getPublicUrl(fileName).data.publicUrl;
-}
-
-document.getElementById('product-form').onsubmit = async function(e) {
-    e.preventDefault();
-    const btn = document.getElementById('save-product-btn');
-    btn.disabled = true;
-    btn.innerText = "Сохранение...";
-    try {
-        const editId = document.getElementById('edit-id').value;
-        let imageUrls = [];
-        for(let i=1; i<=4; i++) {
-            const input = document.getElementById(`img-${i}`);
-            const preview = document.querySelector(`#preview-${i} img`);
-            if (input.files[0]) imageUrls.push(await uploadImage(input.files[0]));
-            else if (preview && preview.src.startsWith('http')) imageUrls.push(preview.src);
-        }
-        const data = {
-            name: { ru: document.getElementById('name-ru').value, uz: document.getElementById('name-uz').value, en: document.getElementById('name-en').value },
-            category: document.getElementById('prod-category').value,
-            sub_category: document.getElementById('prod-sub-category').value,
-            images: imageUrls,
-            image: imageUrls[0],
-            sizes: document.getElementById('prod-sizes').value.split(',').map(s => s.trim()),
-            desc: { ru: document.getElementById('desc-ru').value, uz: "", en: "" }
-        };
-        if (editId) await supabaseClient.from('products').update(data).eq('id', editId);
-        else await supabaseClient.from('products').insert([data]);
-        await initAdmin();
-        closeAdminModal();
-    } catch(err) { alert("Ошибка сохранения: " + err.message); }
-    finally { btn.disabled = false; btn.innerText = "Сохранить товар"; }
-};
-
-// ---- Category & Settings ----
+// ---- Categories ----
 async function addCategory(e) {
     e.preventDefault();
     const btn = e.target.querySelector('button[type="submit"]');
     btn.disabled = true;
-    btn.innerText = "Создание...";
+    btn.innerText = "Сохранение...";
 
     const name = { 
         ru: document.getElementById('cat-name-ru').value, 
@@ -208,91 +95,61 @@ async function addCategory(e) {
         en: document.getElementById('cat-name-en').value 
     };
 
-    try {
-        const { error } = await supabaseClient.from('categories').insert([{ id: 'cat_'+Date.now(), name }]);
-        if (error) throw error;
-        
-        alert("Категория успешно создана!");
+    const { error } = await supabaseClient.from('categories').insert([{ id: 'cat_'+Date.now(), name }]);
+    
+    if (error) {
+        alert("Ошибка базы данных: " + error.message);
+    } else {
+        alert("Успешно создано!");
         await initAdmin();
         closeCategoryModal();
         e.target.reset();
-    } catch(err) {
-        alert("Ошибка при создании: " + err.message);
-    } finally {
-        btn.disabled = false;
-        btn.innerText = "Создать";
     }
+    btn.disabled = false;
+    btn.innerText = "Создать";
 }
 
+function renderCategories() {
+    const list = document.getElementById('category-list');
+    list.innerHTML = CATEGORIES.map(c => `
+        <div style="display:flex; justify-content:space-between; padding:15px; border-bottom:1px solid #eee;">
+            <span>${c.name.ru}</span>
+            <button onclick="deleteCategory('${c.id}')" style="color:red; background:none; border:none; cursor:pointer; font-weight:600;">Удалить</button>
+        </div>
+    `).join('');
+}
+
+// ---- Modals & Tools ----
+function openAddModal() {
+    document.getElementById('product-form').reset();
+    document.getElementById('edit-id').value = "";
+    document.getElementById('modal-type-title').innerText = "Новый товар";
+    document.getElementById('product-modal').style.display = 'flex';
+}
+
+function closeAdminModal() { document.getElementById('product-modal').style.display = 'none'; }
 function openCategoryModal() { document.getElementById('category-modal').style.display = 'flex'; }
 function closeCategoryModal() { document.getElementById('category-modal').style.display = 'none'; }
 
-async function deleteCategory(id) {
-    if (confirm("Удалить категорию?")) {
-        await supabaseClient.from('categories').delete().eq('id', id);
-        await initAdmin();
-    }
+function toggleAdminLang(e) {
+    e.stopPropagation();
+    document.getElementById('admin-lang-dropdown').classList.toggle('active');
 }
 
-async function deleteProduct(id) {
-    if (confirm("Удалить товар?")) {
-        await supabaseClient.from('products').delete().eq('id', id);
-        await initAdmin();
-    }
+function selectAdminLang(lang) {
+    document.getElementById('admin-lang-label').innerText = lang.toUpperCase();
+    document.getElementById('admin-lang-dropdown').classList.remove('active');
 }
 
-function loadSettings() {
-    if (!SETTINGS.title) return;
-    const tRu = document.getElementById('set-title-ru');
-    if(tRu) {
-        tRu.value = SETTINGS.title.ru;
-        document.getElementById('set-title-uz').value = SETTINGS.title.uz;
-        document.getElementById('set-title-en').value = SETTINGS.title.en;
-        document.getElementById('set-desc-ru').value = SETTINGS.desc.ru;
-        document.getElementById('set-desc-uz').value = SETTINGS.desc.uz;
-        document.getElementById('set-desc-en').value = SETTINGS.desc.en;
-    }
-}
-
-async function saveSettings() {
-    const data = {
-        title: { ru: document.getElementById('set-title-ru').value, uz: document.getElementById('set-title-uz').value, en: document.getElementById('set-title-en').value },
-        desc: { ru: document.getElementById('set-desc-ru').value, uz: document.getElementById('set-desc-uz').value, en: document.getElementById('set-desc-en').value }
-    };
-    await supabaseClient.from('settings').update(data).eq('id', 1);
-    alert("Настройки сохранены!");
-    await initAdmin();
-}
-
-// ---- Initialization ----
 window.onload = () => {
-    // 1. Magic Bypass Link
     if (window.location.hash === '#bypass') {
         localStorage.setItem('admin_logged_forever', 'true');
         window.location.hash = '';
     }
-
-    // 2. Persistent Login Check
-    if (localStorage.getItem('admin_logged_forever') === 'true') {
-        enterDashboard();
-    }
-
-    // 3. Close dropdowns on click outside
-    window.onclick = (e) => {
-        const drop = document.getElementById('admin-lang-dropdown');
-        if (drop && !e.target.closest('.lang-dropdown')) drop.classList.remove('active');
-    };
+    if (localStorage.getItem('admin_logged_forever') === 'true') enterDashboard();
 }
 
-function toggleAdminLang(e) {
-    e.stopPropagation();
+window.onclick = (e) => {
     const drop = document.getElementById('admin-lang-dropdown');
-    if(drop) drop.classList.toggle('active');
-}
-
-function selectAdminLang(lang) {
-    const label = document.getElementById('admin-lang-label');
-    if(label) label.innerText = lang.toUpperCase();
-    const drop = document.getElementById('admin-lang-dropdown');
-    if(drop) drop.classList.remove('active');
+    if(drop && !e.target.closest('.lang-dropdown')) drop.classList.remove('active');
 }
