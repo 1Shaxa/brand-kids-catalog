@@ -221,3 +221,16 @@ if (sessionStorage.getItem('admin_logged_in') === 'true') {
     document.getElementById('admin-dashboard').style.display = 'flex';
     initAdmin();
 }
+
+// ---- Language Switcher Logic ----
+function toggleAdminLang(e) {
+    e.stopPropagation();
+    document.getElementById('admin-lang-dropdown').classList.toggle('active');
+}
+
+function selectAdminLang(lang) {
+    document.getElementById('admin-lang-label').innerText = lang.toUpperCase();
+    document.getElementById('admin-lang-dropdown').classList.remove('active');
+    // Here you can add logic to translate admin panel texts if needed
+    // For now it just updates the label to match the site
+}

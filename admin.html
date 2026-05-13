@@ -38,7 +38,17 @@
                 <div class="search-area">
                     <input type="text" placeholder="Поиск по инвентарю..." oninput="handleAdminSearch(this.value)" style="padding: 10px; border: 1px solid #eee; width: 300px;">
                 </div>
-                <div class="admin-actions">
+                <div class="admin-actions" style="display: flex; align-items: center; gap: 20px;">
+                    <div class="lang-dropdown" id="admin-lang-dropdown">
+                        <div class="lang-current" onclick="toggleAdminLang(event)">
+                            <span id="admin-lang-label">RU</span>
+                        </div>
+                        <div class="lang-options">
+                            <div class="lang-option" onclick="selectAdminLang('ru')">Русский</div>
+                            <div class="lang-option" onclick="selectAdminLang('uz')">O'zbekcha</div>
+                            <div class="lang-option" onclick="selectAdminLang('en')">English</div>
+                        </div>
+                    </div>
                     <button onclick="openAddModal()" class="btn-primary">+ Новый товар</button>
                 </div>
             </header>
