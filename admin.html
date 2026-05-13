@@ -115,10 +115,35 @@
             <!-- Settings Tab -->
             <div id="tab-settings-content" style="display: none;">
                 <div class="admin-header">
-                    <h1 id="set-title-h1">Настройки сайта</h1>
-                    <p id="set-desc-p">Тексты на главной странице (Hero Section).</p>
+                    <h1 id="set-title-h1">Настройки и Безопасность</h1>
+                    <p id="set-desc-p">Управление контентом сайта и доступом к панели.</p>
                 </div>
+
+                <!-- Security Section -->
+                <div class="card-form admin-form" style="margin-bottom: 30px; border-left: 4px solid var(--accent);">
+                    <h2 style="margin-bottom: 20px;">🛡️ Безопасность и Доступ</h2>
+                    <div class="form-grid">
+                        <div class="form-section">
+                            <h3>Смена логина и пароля</h3>
+                            <label>Новый логин</label>
+                            <input type="text" id="new-admin-user" placeholder="Новый логин">
+                            <label>Новый пароль</label>
+                            <input type="password" id="new-admin-pass" placeholder="Новый пароль">
+                            <button onclick="changeAdminCredentials()" class="btn-primary" style="margin-top: 15px; width: 100%;">Обновить данные входа</button>
+                            <p style="font-size: 11px; color: #999; margin-top: 10px;">* Внимание: для работы этой функции необходимо запустить SQL-скрипт в Supabase.</p>
+                        </div>
+                        <div class="form-section">
+                            <h3>Активные устройства</h3>
+                            <div id="session-list" class="session-list">
+                                <p style="color: #999; font-size: 13px;">Загрузка списка устройств...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content Section -->
                 <form id="settings-form" class="admin-form card-form">
+                    <h2 style="margin-bottom: 20px;">📝 Контент главной страницы</h2>
                     <div class="form-grid">
                         <div class="form-section">
                             <h3 id="set-hero-title">Заголовок (Hero Title)</h3>
@@ -133,7 +158,7 @@
                             <textarea id="set-desc-en" placeholder="EN"></textarea>
                         </div>
                     </div>
-                    <button type="button" onclick="saveSettings()" class="btn-primary" id="btn-save-settings">Сохранить настройки</button>
+                    <button type="button" onclick="saveSettings()" class="btn-primary" id="btn-save-settings">Сохранить настройки контента</button>
                 </form>
             </div>
         </main>
