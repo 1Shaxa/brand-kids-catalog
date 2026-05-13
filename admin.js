@@ -198,10 +198,30 @@ document.getElementById('product-form').onsubmit = async function(e) {
 // ---- Category & Settings ----
 async function addCategory(e) {
     e.preventDefault();
-    const name = { ru: document.getElementById('cat-name-ru').value, uz: document.getElementById('cat-name-uz').value, en: document.getElementById('cat-name-en').value };
-    await supabaseClient.from('categories').insert([{ id: 'cat_'+Date.now(), name }]);
-    await initAdmin();
-    closeCategoryModal();
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.innerText = "Создание...";
+
+    const name = { 
+        ru: document.getElementById('cat-name-ru').value, 
+        uz: document.getElementById('cat-name-uz').value, 
+        en: document.getElementById('cat-name-en').value 
+    };
+
+    try {
+        const { error } = await supabaseClient.from('categories').insert([{ id: 'cat_'+Date.now(), name }]);
+        if (error) throw error;
+        
+        alert("Категория успешно создана!");
+        await initAdmin();
+        closeCategoryModal();
+        e.target.reset();
+    } catch(err) {
+        alert("Ошибка при создании: " + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Создать";
+    }
 }
 
 function openCategoryModal() { document.getElementById('category-modal').style.display = 'flex'; }
