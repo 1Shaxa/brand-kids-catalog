@@ -1,7 +1,7 @@
 // Supabase Configuration
 const SUPABASE_URL = 'https://yopdjvjaigregbfqxjke.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvcGRqdmphaWdyZWdiZnF4amtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2NjI1MTksImV4cCI6MjA5NDIzODUxOX0.pa1PoZYyvOPBc_1eTYbW6wodACrg-riRWtDSiEKuNe8';
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let LANG = 'ru';
 let currentMainCategory = 'all';
@@ -29,15 +29,15 @@ const closeBtn = document.querySelector('.close-modal');
 async function loadAppData() {
     try {
         // Load Settings
-        const { data: settingsData } = await supabase.from('settings').select('*').single();
+        const { data: settingsData } = await supabaseClient.from('settings').select('*').single();
         if (settingsData) SETTINGS = settingsData;
 
         // Load Categories
-        const { data: catData } = await supabase.from('categories').select('*');
+        const { data: catData } = await supabaseClient.from('categories').select('*');
         if (catData) CATEGORIES = catData;
 
         // Load Products
-        const { data: prodData } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+        const { data: prodData } = await supabaseClient.from('products').select('*').order('created_at', { ascending: false });
         if (prodData) PRODUCTS = prodData;
 
         setLanguage(LANG);

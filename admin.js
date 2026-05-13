@@ -1,7 +1,7 @@
 // Supabase Configuration
 const SUPABASE_URL = 'https://yopdjvjaigregbfqxjke.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvcGRqdmphaWdyZWdiZnF4amtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2NjI1MTksImV4cCI6MjA5NDIzODUxOX0.pa1PoZYyvOPBc_1eTYbW6wodACrg-riRWtDSiEKuNe8';
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const ADMIN_USER = "admin";
 const ADMIN_PASS = "brandkids123";
@@ -30,9 +30,9 @@ async function initAdmin() {
 }
 
 async function loadData() {
-    const { data: p } = await supabase.from('products').select('*').order('created_at', { ascending: false });
-    const { data: c } = await supabase.from('categories').select('*');
-    const { data: s } = await supabase.from('settings').select('*').single();
+    const { data: p } = await supabaseClient.from('products').select('*').order('created_at', { ascending: false });
+    const { data: c } = await supabaseClient.from('categories').select('*');
+    const { data: s } = await supabaseClient.from('settings').select('*').single();
     
     products = p || [];
     categories = c || [];
@@ -72,14 +72,14 @@ async function addCategory(e) {
         en: document.getElementById('cat-name-en').value
     };
     
-    await supabase.from('categories').insert([{ id, name }]);
+    await supabaseClient.from('categories').insert([{ id, name }]);
     await initAdmin();
     e.target.reset();
 }
 
 async function deleteCategory(id) {
     if (confirm("Удалить эту категорию?")) {
-        await supabase.from('categories').delete().eq('id', id);
+        await supabaseClient.from('categories').delete().eq('id', id);
         await initAdmin();
     }
 }
@@ -137,13 +137,13 @@ function editProduct(id) {
 
 async function uploadImage(file) {
     const fileName = `${Date.now()}_${file.name}`;
-    const { data, error } = await supabase.storage
+    const { data, error } = await supabaseClient.storage
         .from('product-images')
         .upload(fileName, file);
     
     if (error) throw error;
     
-    const { data: { publicUrl } } = supabase.storage
+    const { data: { publicUrl } } = supabaseClient.storage
         .from('product-images')
         .getPublicUrl(fileName);
         
@@ -183,9 +183,9 @@ document.getElementById('product-form').onsubmit = async function(e) {
         };
 
         if (editId) {
-            await supabase.from('products').update(productData).eq('id', editId);
+            await supabaseClient.from('products').update(productData).eq('id', editId);
         } else {
-            await supabase.from('products').insert([productData]);
+            await supabaseClient.from('products').insert([productData]);
         }
 
         await initAdmin();
@@ -200,7 +200,7 @@ document.getElementById('product-form').onsubmit = async function(e) {
 
 async function deleteProduct(id) {
     if (confirm("Удалить этот товар?")) {
-        await supabase.from('products').delete().eq('id', id);
+        await supabaseClient.from('products').delete().eq('id', id);
         await initAdmin();
     }
 }
@@ -221,7 +221,7 @@ async function saveSettings() {
         title: { ru: document.getElementById('set-title-ru').value, uz: document.getElementById('set-title-uz').value, en: document.getElementById('set-title-en').value },
         desc: { ru: document.getElementById('set-desc-ru').value, uz: document.getElementById('set-desc-uz').value, en: document.getElementById('set-desc-en').value }
     };
-    await supabase.from('settings').update(newSettings).eq('id', 1);
+    await supabaseClient.from('settings').update(newSettings).eq('id', 1);
     alert("Настройки сохранены в облаке!");
     await loadData();
 }
