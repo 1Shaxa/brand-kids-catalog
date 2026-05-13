@@ -1,9 +1,14 @@
-// Supabase Configuration
+// Brand Kids Admin - Extreme Stability Edition
 const SUPABASE_URL = 'https://yopdjvjaigregbfqxjke.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvcGRqdmphaWdyZWdiZnF4amtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2NjI1MTksImV4cCI6MjA5NDIzODUxOX0.pa1PoZYyvOPBc_1eTYbW6wodACrg-riRWtDSiEKuNe8';
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ВАШИ ДАННЫЕ ВХОДА (Проверьте их внимательно!)
+let supabaseClient;
+try {
+    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+} catch(e) {
+    console.error("Supabase load error, using fallback mode");
+}
+
 const ADMIN_USER = "BrandKidsAdmin_2026";
 const ADMIN_PASS = "BK_Secure_99!_Store";
 
@@ -12,46 +17,40 @@ let CATEGORIES = [];
 let SETTINGS = {};
 let adminSearchQuery = '';
 
-// ---- Auth Logic ----
+// ---- Robust Auth ----
 function checkLogin() {
-    const userField = document.getElementById('admin-user');
-    const passField = document.getElementById('admin-pass');
-    
-    // Убираем пробелы, если они случайно попали при копировании
-    const user = userField.value.trim();
-    const pass = passField.value.trim();
-
-    console.log("Вход под:", user);
+    const user = document.getElementById('admin-user').value.trim();
+    const pass = document.getElementById('admin-pass').value.trim();
 
     if (user === ADMIN_USER && pass === ADMIN_PASS) {
-        sessionStorage.setItem('admin_logged_in', 'true');
+        localStorage.setItem('admin_logged_forever', 'true');
         enterDashboard();
     } else {
-        const errorDiv = document.getElementById('login-error');
-        errorDiv.innerText = "Неверный логин или пароль. Убедитесь, что нет лишних пробелов.";
-        errorDiv.style.color = "red";
+        const err = document.getElementById('login-error');
+        if(err) err.innerText = "Ошибка: проверьте логин и пароль";
     }
 }
 
 function enterDashboard() {
-    const loginScreen = document.getElementById('login-screen');
+    const login = document.getElementById('login-screen');
     const dash = document.getElementById('admin-dashboard');
-    
-    if (loginScreen) loginScreen.style.display = 'none';
+    if (login) login.style.display = 'none';
     if (dash) {
         dash.style.display = 'flex';
-        dash.style.width = '100%';
+        dash.style.visibility = 'visible';
+        dash.style.opacity = '1';
     }
     initAdmin();
 }
 
 async function logout() {
-    sessionStorage.removeItem('admin_logged_in');
+    localStorage.removeItem('admin_logged_forever');
     location.reload();
 }
 
-// ---- Core Admin Logic ----
+// ---- Stable Data Loading ----
 async function initAdmin() {
+    if (!supabaseClient) return alert("Ошибка связи с базой данных. Проверьте интернет.");
     await loadData();
     renderInventory();
     renderCategories();
@@ -66,21 +65,17 @@ async function loadData() {
         PRODUCTS = p || [];
         CATEGORIES = c || [];
         SETTINGS = s || {};
-    } catch (e) { console.error(e); }
+    } catch (e) { console.warn("Data refresh failed", e); }
 }
 
 function showTab(tab) {
     document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-    if (tab === 'inventory') document.getElementById('tab-inv').classList.add('active');
-    if (tab === 'categories') document.getElementById('tab-cat').classList.add('active');
-    if (tab === 'settings') document.getElementById('tab-set').classList.add('active');
+    const tabEl = document.getElementById(`tab-${tab.substring(0,3)}`);
+    if(tabEl) tabEl.classList.add('active');
     
     document.getElementById('tab-inventory-content').style.display = tab === 'inventory' ? 'block' : 'none';
     document.getElementById('tab-categories-content').style.display = tab === 'categories' ? 'block' : 'none';
     document.getElementById('tab-settings-content').style.display = tab === 'settings' ? 'block' : 'none';
-    
-    if (tab === 'inventory') renderInventory();
-    if (tab === 'categories') renderCategories();
 }
 
 function handleAdminSearch(val) {
@@ -90,6 +85,7 @@ function handleAdminSearch(val) {
 
 function renderInventory() {
     const list = document.getElementById('inventory-list');
+    if(!list) return;
     let filtered = PRODUCTS;
     if (adminSearchQuery) {
         filtered = PRODUCTS.filter(p => p.name.ru.toLowerCase().includes(adminSearchQuery));
@@ -97,13 +93,13 @@ function renderInventory() {
 
     list.innerHTML = filtered.map(p => `
         <tr>
-            <td><img src="${p.images?.[0] || p.image}" class="item-thumb"></td>
+            <td><img src="${p.images?.[0] || p.image}" class="item-thumb" style="width:50px; height:60px; object-fit:cover;"></td>
             <td><strong>${p.name.ru}</strong></td>
             <td>${p.category}</td>
             <td>${(p.sizes || []).join(', ')}</td>
             <td>
-                <button onclick="editProduct(${p.id})" class="btn-link" style="color:blue; border:none; background:none; cursor:pointer; font-weight:600;">Правка</button>
-                <button onclick="deleteProduct(${p.id})" class="btn-link" style="color:red; border:none; background:none; margin-left:10px; cursor:pointer; font-weight:600;">Удалить</button>
+                <button onclick="editProduct(${p.id})" style="color:blue; border:none; background:none; cursor:pointer; font-weight:600;">Правка</button>
+                <button onclick="deleteProduct(${p.id})" style="color:red; border:none; background:none; margin-left:10px; cursor:pointer; font-weight:600;">Удалить</button>
             </td>
         </tr>
     `).join('');
@@ -114,9 +110,10 @@ function renderInventory() {
     }
 }
 
-// ---- Modal Logic ----
+// ---- Modals ----
 function openAddModal() {
-    document.getElementById('product-form').reset();
+    const form = document.getElementById('product-form');
+    if(form) form.reset();
     document.getElementById('edit-id').value = "";
     document.getElementById('modal-type-title').innerText = "Новый товар";
     for(let i=1; i<=4; i++) {
@@ -141,8 +138,10 @@ function editProduct(id) {
     const imgs = p.images || [p.image];
     for(let i=1; i<=4; i++) {
         const preview = document.getElementById(`preview-${i}`);
-        if (imgs[i-1]) preview.innerHTML = `<img src="${imgs[i-1]}">`;
-        else preview.innerHTML = '<span>+</span>';
+        if(preview) {
+            if (imgs[i-1]) preview.innerHTML = `<img src="${imgs[i-1]}" style="width:100%; height:100%; object-fit:cover;">`;
+            else preview.innerHTML = '<span>+</span>';
+        }
     }
     document.getElementById('product-modal').style.display = 'flex';
 }
@@ -151,7 +150,10 @@ function closeAdminModal() { document.getElementById('product-modal').style.disp
 
 function previewMultiImg(event, index) {
     const reader = new FileReader();
-    reader.onload = () => document.getElementById(`preview-${index}`).innerHTML = `<img src="${reader.result}">`;
+    reader.onload = () => {
+        const preview = document.getElementById(`preview-${index}`);
+        if(preview) preview.innerHTML = `<img src="${reader.result}" style="width:100%; height:100%; object-fit:cover;">`;
+    }
     reader.readAsDataURL(event.target.files[0]);
 }
 
@@ -189,23 +191,11 @@ document.getElementById('product-form').onsubmit = async function(e) {
         else await supabaseClient.from('products').insert([data]);
         await initAdmin();
         closeAdminModal();
-    } catch(err) { alert(err.message); }
+    } catch(err) { alert("Ошибка сохранения: " + err.message); }
     finally { btn.disabled = false; btn.innerText = "Сохранить товар"; }
 };
 
-// ---- Categories ----
-function renderCategories() {
-    const list = document.getElementById('category-list');
-    if(list) {
-        list.innerHTML = CATEGORIES.map(c => `
-            <div style="display:flex; justify-content:space-between; padding:15px; border-bottom:1px solid #eee; align-items:center;">
-                <span style="font-weight:500;">${c.name.ru}</span>
-                <button onclick="deleteCategory('${c.id}')" style="color:red; border:none; background:none; cursor:pointer; font-weight:600;">Удалить</button>
-            </div>
-        `).join('');
-    }
-}
-
+// ---- Category & Settings ----
 async function addCategory(e) {
     e.preventDefault();
     const name = { ru: document.getElementById('cat-name-ru').value, uz: document.getElementById('cat-name-uz').value, en: document.getElementById('cat-name-en').value };
@@ -225,7 +215,7 @@ async function deleteCategory(id) {
 }
 
 async function deleteProduct(id) {
-    if (confirm("Удалить этот товар?")) {
+    if (confirm("Удалить товар?")) {
         await supabaseClient.from('products').delete().eq('id', id);
         await initAdmin();
     }
@@ -250,30 +240,39 @@ async function saveSettings() {
         desc: { ru: document.getElementById('set-desc-ru').value, uz: document.getElementById('set-desc-uz').value, en: document.getElementById('set-desc-en').value }
     };
     await supabaseClient.from('settings').update(data).eq('id', 1);
-    alert("Настройки обновлены!");
+    alert("Настройки сохранены!");
     await initAdmin();
 }
 
-// ---- Init ----
+// ---- Initialization ----
 window.onload = () => {
-    // Magic Bypass Check
+    // 1. Magic Bypass Link
     if (window.location.hash === '#bypass') {
-        sessionStorage.setItem('admin_logged_in', 'true');
-        window.location.hash = ''; // Clear hash
+        localStorage.setItem('admin_logged_forever', 'true');
+        window.location.hash = '';
     }
 
-    if (sessionStorage.getItem('admin_logged_in') === 'true') {
+    // 2. Persistent Login Check
+    if (localStorage.getItem('admin_logged_forever') === 'true') {
         enterDashboard();
     }
+
+    // 3. Close dropdowns on click outside
+    window.onclick = (e) => {
+        const drop = document.getElementById('admin-lang-dropdown');
+        if (drop && !e.target.closest('.lang-dropdown')) drop.classList.remove('active');
+    };
 }
 
-// Language Switcher Logic (New UI)
 function toggleAdminLang(e) {
     e.stopPropagation();
-    document.getElementById('admin-lang-dropdown').classList.toggle('active');
+    const drop = document.getElementById('admin-lang-dropdown');
+    if(drop) drop.classList.toggle('active');
 }
 
 function selectAdminLang(lang) {
-    document.getElementById('admin-lang-label').innerText = lang.toUpperCase();
-    document.getElementById('admin-lang-dropdown').classList.remove('active');
+    const label = document.getElementById('admin-lang-label');
+    if(label) label.innerText = lang.toUpperCase();
+    const drop = document.getElementById('admin-lang-dropdown');
+    if(drop) drop.classList.remove('active');
 }
