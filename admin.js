@@ -243,7 +243,11 @@ async function addCategory(e) {
         en: document.getElementById('cat-name-en').value
     };
     
-    await supabaseClient.from('categories').insert([{ id, name }]);
+    const { error } = await supabaseClient.from('categories').insert([{ id, name }]);
+    if (error) {
+        alert("Ошибка при добавлении категории: " + error.message + "\nКод: " + error.code);
+        return;
+    }
     await initAdmin();
     closeCategoryModal();
     e.target.reset();
@@ -363,10 +367,15 @@ document.getElementById('product-form').onsubmit = async function(e) {
             sizes: document.getElementById('prod-sizes').value.split(',').map(s => s.trim())
         };
 
+        let res;
         if (editId) {
-            await supabaseClient.from('products').update(productData).eq('id', editId);
+            res = await supabaseClient.from('products').update(productData).eq('id', editId);
         } else {
-            await supabaseClient.from('products').insert([productData]);
+            res = await supabaseClient.from('products').insert([productData]);
+        }
+
+        if (res.error) {
+            throw new Error(res.error.message + " (Code: " + res.error.code + ")");
         }
 
         await initAdmin();
