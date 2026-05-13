@@ -3,13 +3,16 @@ const SUPABASE_URL = 'https://yopdjvjaigregbfqxjke.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvcGRqdmphaWdyZWdiZnF4amtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2NjI1MTksImV4cCI6MjA5NDIzODUxOX0.pa1PoZYyvOPBc_1eTYbW6wodACrg-riRWtDSiEKuNe8';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+const ADMIN_USER = "BrandKidsAdmin_2026";
+const ADMIN_PASS = "BK_Secure_99!_Store";
+
 const T_ADMIN = {
     ru: {
         toSite: "На сайт", addProduct: "+ Добавить товар", logout: "Выйти",
         tabInv: "Инвентарь", tabCat: "Категории", tabSet: "Настройки",
         invTitle: "Управление инвентарем", invDesc: "Добавляйте товары и размеры.",
         catTitle: "Категории одежды", catDesc: "Управление типами одежды.",
-        addCat: "+ Добавить категорию", setTitle: "Настройки и Безопасность", setDesc: "Управление контентом и доступом.",
+        addCat: "+ Добавить категорию", setTitle: "Настройки сайта", setDesc: "Управление контентом сайта.",
         heroTitle: "Заголовок", heroDesc: "Описание", save: "Сохранить настройки"
     },
     uz: {
@@ -17,7 +20,7 @@ const T_ADMIN = {
         tabInv: "Inventar", tabCat: "Kategoriyalar", tabSet: "Sozlamalar",
         invTitle: "Inventarni boshqarish", invDesc: "Mahsulotlar va o'lchamlarni qo'shing.",
         catTitle: "Kiyim kategoriyalari", catDesc: "Kiyim turlarini boshqarish.",
-        addCat: "+ Kategoriya qo'shish", setTitle: "Sozlamalar va Xavfsizlik", setDesc: "Kontent va kirishni boshqarish.",
+        addCat: "+ Kategoriya qo'shish", setTitle: "Sayt sozlamalari", setDesc: "Saytning asosiy ekrani.",
         heroTitle: "Sarlavha", heroDesc: "Tavsif", save: "Saqlash"
     },
     en: {
@@ -25,16 +28,12 @@ const T_ADMIN = {
         tabInv: "Inventory", tabCat: "Categories", tabSet: "Settings",
         invTitle: "Inventory Management", invDesc: "Add products and sizes.",
         catTitle: "Clothing Categories", catDesc: "Manage clothing types.",
-        addCat: "+ Add Category", setTitle: "Settings & Security", setDesc: "Manage content and access.",
+        addCat: "+ Add Category", setTitle: "Site Settings", setDesc: "Main landing screen.",
         heroTitle: "Title", heroDesc: "Description", save: "Save"
     }
 };
 
 let currentLang = 'ru';
-let products = [];
-let categories = [];
-let settings = {};
-let sessions = [];
 
 function toggleAdminLangDropdown(e) {
     e.stopPropagation();
@@ -72,28 +71,23 @@ function setAdminLanguage(lang) {
     document.getElementById('btn-save-settings').innerText = T_ADMIN[lang].save;
 }
 
-// ---- Security & Auth ----
-const sessionToken = localStorage.getItem('admin_token');
-
-async function checkSession() {
-    if (!sessionToken) return false;
-    const { data, error } = await supabaseClient.from('admin_sessions').select('*').eq('token', sessionToken).single();
-    if (error || !data) return false;
-    return true;
+// Check if already logged in
+if (sessionStorage.getItem('admin_logged_in') === 'true') {
+    window.onload = () => {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('admin-dashboard').style.display = 'block';
+        initAdmin();
+    };
 }
 
-async function checkLogin() {
-    const user = document.getElementById('admin-user').value;
-    const pass = document.getElementById('admin-pass').value;
+let products = [];
+let categories = [];
+let settings = {};
 
-    const { data: auth, error } = await supabaseClient.from('admin_auth').select('*').eq('username', user).eq('password', pass).single();
-
-    if (auth) {
-        const token = 'tok_' + Math.random().toString(36).substr(2, 9);
-        const userAgent = navigator.userAgent;
-        await supabaseClient.from('admin_sessions').insert([{ token, user_agent: userAgent }]);
-        localStorage.setItem('admin_token', token);
-        
+// ---- Login & Init ----
+function checkLogin() {
+    if (document.getElementById('admin-user').value === ADMIN_USER && document.getElementById('admin-pass').value === ADMIN_PASS) {
+        sessionStorage.setItem('admin_logged_in', 'true');
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('admin-dashboard').style.display = 'block';
         initAdmin();
@@ -102,68 +96,11 @@ async function checkLogin() {
     }
 }
 
-async function logout() {
-    const token = localStorage.getItem('admin_token');
-    if (token) await supabaseClient.from('admin_sessions').delete().eq('token', token);
-    localStorage.removeItem('admin_token');
-    location.reload();
-}
-
-async function changeAdminCredentials() {
-    const newUser = document.getElementById('new-admin-user').value;
-    const newPass = document.getElementById('new-admin-pass').value;
-
-    if (!newUser || !newPass) return alert("Заполните оба поля");
-
-    const { error } = await supabaseClient.from('admin_auth').update({ username: newUser, password: newPass }).eq('id', 1);
-    if (!error) {
-        alert("Данные входа успешно обновлены!");
-        document.getElementById('new-admin-user').value = "";
-        document.getElementById('new-admin-pass').value = "";
-    } else {
-        alert("Ошибка: " + error.message);
-    }
-}
-
-async function loadSessions() {
-    const { data } = await supabaseClient.from('admin_sessions').select('*');
-    sessions = data || [];
-    renderSessions();
-}
-
-function renderSessions() {
-    const list = document.getElementById('session-list');
-    list.innerHTML = sessions.map(s => `
-        <div class="session-card">
-            <div class="session-info">
-                <strong>${s.user_agent.split(')')[0].split('(')[1] || 'Устройство'}</strong>
-                <span>${new Date(s.last_active).toLocaleString()}</span>
-                <span style="font-size: 9px; color: #ccc;">${s.token === sessionToken ? '(Это устройство)' : ''}</span>
-            </div>
-            <button onclick="deleteSession('${s.id}')" class="btn-link" style="color: #ef4444; font-size: 12px;">Удалить</button>
-        </div>
-    `).join('');
-}
-
-async function deleteSession(id) {
-    if (confirm("Выйти с этого устройства?")) {
-        const targetSession = sessions.find(s => s.id === id);
-        await supabaseClient.from('admin_sessions').delete().eq('id', id);
-        if (targetSession.token === sessionToken) {
-            logout();
-        } else {
-            loadSessions();
-        }
-    }
-}
-
-// ---- Core Logic ----
 async function initAdmin() {
     await loadData();
     renderInventory();
     renderCategories();
     loadSettings();
-    loadSessions();
     updateSubCategorySelect();
     setAdminLanguage(currentLang);
 }
@@ -186,8 +123,6 @@ function showTab(tab) {
     document.getElementById('tab-inv').classList.toggle('active', tab === 'inventory');
     document.getElementById('tab-cat').classList.toggle('active', tab === 'categories');
     document.getElementById('tab-set').classList.toggle('active', tab === 'settings');
-    
-    if (tab === 'settings') loadSessions();
 }
 
 // ---- Category Management ----
@@ -389,6 +324,7 @@ function previewImg(event) {
 }
 
 function closeAdminModal() { document.getElementById('product-modal').classList.remove('active'); }
+function logout() { sessionStorage.removeItem('admin_logged_in'); location.reload(); }
 
 window.onclick = (e) => { 
     const pModal = document.getElementById('product-modal');
@@ -398,12 +334,3 @@ window.onclick = (e) => {
     const lDrop = document.getElementById('admin-lang-dropdown');
     if (lDrop) lDrop.classList.remove('active');
 }
-
-// Check session on start
-checkSession().then(isOk => {
-    if (isOk) {
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('admin-dashboard').style.display = 'block';
-        initAdmin();
-    }
-});
