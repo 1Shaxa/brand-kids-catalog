@@ -577,3 +577,50 @@ body {
     .nav-links { display: none; }
     .hero-content h1 { font-size: 32px; }
 }
+
+/* ---- Modal Gallery ---- */
+.modal-image {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.main-gallery-img {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    object-fit: contain;
+    background: #f9f9f9;
+}
+
+.gallery-thumbs {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+}
+
+.thumb-item {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    overflow: hidden;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.thumb-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.thumb-item.active {
+    border-color: var(--accent);
+}
+
+.thumb-item:hover {
+    opacity: 0.8;
+}

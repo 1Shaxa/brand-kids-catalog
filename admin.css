@@ -369,3 +369,19 @@
     font-size: 11px;
     color: var(--text-muted);
 }
+
+/* ---- Multi Upload Grid ---- */
+.multi-upload-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.multi-upload-grid .img-preview {
+    height: 120px;
+    font-size: 11px;
+}
+
+.multi-upload-grid .img-preview span::before {
+    font-size: 20px;
+}

@@ -207,13 +207,17 @@
                         <input type="text" id="prod-sizes" placeholder="Введите через запятую: S, M, L или 86, 92">
                         <p class="input-hint">Кликните пресет или введите вручную через запятую.</p>
 
-                        <label>Фото товара</label>
-                        <div class="file-upload">
-                            <input type="file" id="prod-img" accept="image/*" onchange="previewImg(event)">
-                            <div id="img-preview-container" class="img-preview">
-                                <span>Нажмите, чтобы выбрать фото</span>
-                            </div>
+                        <label>Фотографии товара (до 4-х)</label>
+                        <div class="multi-upload-grid">
+                            <div class="img-preview" onclick="document.getElementById('img-1').click()" id="preview-1"><span>Главное</span></div>
+                            <div class="img-preview" onclick="document.getElementById('img-2').click()" id="preview-2"><span>Фото 2</span></div>
+                            <div class="img-preview" onclick="document.getElementById('img-3').click()" id="preview-3"><span>Фото 3</span></div>
+                            <div class="img-preview" onclick="document.getElementById('img-4').click()" id="preview-4"><span>Фото 4</span></div>
                         </div>
+                        <input type="file" id="img-1" hidden accept="image/*" onchange="previewMultiImg(event, 1)">
+                        <input type="file" id="img-2" hidden accept="image/*" onchange="previewMultiImg(event, 2)">
+                        <input type="file" id="img-3" hidden accept="image/*" onchange="previewMultiImg(event, 3)">
+                        <input type="file" id="img-4" hidden accept="image/*" onchange="previewMultiImg(event, 4)">
                     </div>
                 </div>
                 <div class="form-footer">

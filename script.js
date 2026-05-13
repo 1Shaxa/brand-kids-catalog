@@ -154,12 +154,40 @@ function renderProducts() {
 function openProduct(id) {
     const product = PRODUCTS.find(p => p.id === id);
     if (!product) return;
-    document.getElementById('modal-img').src = product.image;
+    
+    // Gallery Logic
+    const imgs = product.images && product.images.length > 0 ? product.images : [product.image];
+    const imgContainer = document.getElementById('modal-img-container');
+    imgContainer.innerHTML = `
+        <img src="${imgs[0]}" id="modal-img" class="main-gallery-img">
+        <div class="gallery-thumbs">
+            ${imgs.map((img, idx) => `
+                <div class="thumb-item ${idx === 0 ? 'active' : ''}" onclick="switchGalleryImg('${img}', this)">
+                    <img src="${img}">
+                </div>
+            `).join('')}
+        </div>
+    `;
+
     document.getElementById('modal-title').textContent = product.name[LANG];
     document.getElementById('modal-category').textContent = T[LANG][product.category];
     document.getElementById('modal-desc').textContent = product.desc ? product.desc[LANG] : '';
     document.getElementById('modal-sizes').innerHTML = (product.sizes || []).map(s => `<div class="size-chip">${s}${T[LANG].sizeSuffix}</div>`).join('');
+    
+    // Telegram Message Logic
+    const tgBtn = document.querySelector('.tg-contact-btn');
+    if (tgBtn) {
+        const message = `Здравствуйте! Меня интересует товар: ${product.name[LANG]} (ID: ${product.id})`;
+        tgBtn.href = `https://t.me/Brand_kids?text=${encodeURIComponent(message)}`;
+    }
+
     modal.classList.add('active');
+}
+
+function switchGalleryImg(src, thumb) {
+    document.getElementById('modal-img').src = src;
+    document.querySelectorAll('.thumb-item').forEach(t => t.classList.remove('active'));
+    thumb.classList.add('active');
 }
 
 closeBtn.onclick = () => modal.classList.remove('active');

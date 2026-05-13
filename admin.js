@@ -3,7 +3,7 @@ const SUPABASE_URL = 'https://yopdjvjaigregbfqxjke.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvcGRqdmphaWdyZWdiZnF4amtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2NjI1MTksImV4cCI6MjA5NDIzODUxOX0.pa1PoZYyvOPBc_1eTYbW6wodACrg-riRWtDSiEKuNe8';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Fallback Credentials (ALWAYS WORK as a safety net)
+// Fallback Credentials
 const ADMIN_USER = "BrandKidsAdmin_2026";
 const ADMIN_PASS = "BK_Secure_99!_Store";
 
@@ -76,50 +76,36 @@ function setAdminLanguage(lang) {
     document.getElementById('btn-save-settings').innerText = T_ADMIN[lang].save;
 }
 
-// ---- Security & Auth ----
+// ---- Auth ----
 const sessionToken = localStorage.getItem('admin_token');
 
 async function checkSession() {
     if (!sessionToken) return false;
-    const { data, error } = await supabaseClient.from('admin_sessions').select('*').eq('token', sessionToken).single();
-    if (error || !data) return false;
-    return true;
-}
-
-async function createSession() {
-    const token = 'tok_' + Math.random().toString(36).substr(2, 9);
-    const userAgent = navigator.userAgent;
-    // We try to save session to DB, if table doesn't exist, we still log in locally
     try {
-        await supabaseClient.from('admin_sessions').insert([{ token, user_agent: userAgent }]);
-        localStorage.setItem('admin_token', token);
-    } catch(e) {
-        console.warn("Sessions table not ready yet");
-    }
-    sessionStorage.setItem('admin_logged_in', 'true');
+        const { data, error } = await supabaseClient.from('admin_sessions').select('*').eq('token', sessionToken).single();
+        return !error && data;
+    } catch(e) { return false; }
 }
 
 async function checkLogin() {
     const user = document.getElementById('admin-user').value;
     const pass = document.getElementById('admin-pass').value;
 
-    // 1. Try DB first
     try {
         const { data: auth } = await supabaseClient.from('admin_auth').select('*').eq('username', user).eq('password', pass).single();
-        if (auth) {
-            await createSession();
+        if (auth || (user === ADMIN_USER && pass === ADMIN_PASS)) {
+            sessionStorage.setItem('admin_logged_in', 'true');
             enterDashboard();
             return;
         }
-    } catch(e) { }
-
-    // 2. Fallback to Hardcoded (Safety Net)
-    if (user === ADMIN_USER && pass === ADMIN_PASS) {
-        await createSession();
-        enterDashboard();
-    } else {
-        document.getElementById('login-error').innerText = "Неверный логин или пароль";
+    } catch(e) {
+        if (user === ADMIN_USER && pass === ADMIN_PASS) {
+            sessionStorage.setItem('admin_logged_in', 'true');
+            enterDashboard();
+            return;
+        }
     }
+    document.getElementById('login-error').innerText = "Неверный логин или пароль";
 }
 
 function enterDashboard() {
@@ -129,62 +115,8 @@ function enterDashboard() {
 }
 
 async function logout() {
-    const token = localStorage.getItem('admin_token');
-    if (token) {
-        try { await supabaseClient.from('admin_sessions').delete().eq('token', token); } catch(e) {}
-    }
-    localStorage.removeItem('admin_token');
     sessionStorage.removeItem('admin_logged_in');
     location.reload();
-}
-
-async function changeAdminCredentials() {
-    const newUser = document.getElementById('new-admin-user').value;
-    const newPass = document.getElementById('new-admin-pass').value;
-    if (!newUser || !newPass) return alert("Заполните оба поля");
-
-    const { error } = await supabaseClient.from('admin_auth').update({ username: newUser, password: newPass }).eq('id', 1);
-    if (!error) {
-        alert("Данные входа успешно обновлены в базе!");
-        document.getElementById('new-admin-user').value = "";
-        document.getElementById('new-admin-pass').value = "";
-    } else {
-        alert("Ошибка! Возможно, вы не запустили SQL-скрипт в Supabase: " + error.message);
-    }
-}
-
-async function loadSessions() {
-    try {
-        const { data } = await supabaseClient.from('admin_sessions').select('*');
-        sessions = data || [];
-        renderSessions();
-    } catch(e) {
-        document.getElementById('session-list').innerHTML = "<p style='color: #ef4444; font-size: 11px;'>Таблица сессий не создана в Supabase</p>";
-    }
-}
-
-function renderSessions() {
-    const list = document.getElementById('session-list');
-    if (sessions.length === 0) {
-        list.innerHTML = "<p style='color: #999; font-size: 13px;'>Нет активных сессий</p>";
-        return;
-    }
-    list.innerHTML = sessions.map(s => `
-        <div class="session-card">
-            <div class="session-info">
-                <strong>${s.user_agent.split(')')[0].split('(')[1] || 'Устройство'}</strong>
-                <span>${new Date(s.last_active).toLocaleString()}</span>
-            </div>
-            <button onclick="deleteSession('${s.id}')" class="btn-link" style="color: #ef4444; font-size: 12px;">Удалить</button>
-        </div>
-    `).join('');
-}
-
-async function deleteSession(id) {
-    if (confirm("Выйти с этого устройства?")) {
-        await supabaseClient.from('admin_sessions').delete().eq('id', id);
-        loadSessions();
-    }
 }
 
 // ---- Core Logic ----
@@ -193,7 +125,6 @@ async function initAdmin() {
     renderInventory();
     renderCategories();
     loadSettings();
-    loadSessions();
     updateSubCategorySelect();
     setAdminLanguage(currentLang);
 }
@@ -216,73 +147,41 @@ function showTab(tab) {
     document.getElementById('tab-inv').classList.toggle('active', tab === 'inventory');
     document.getElementById('tab-cat').classList.toggle('active', tab === 'categories');
     document.getElementById('tab-set').classList.toggle('active', tab === 'settings');
-    
-    if (tab === 'settings') loadSessions();
 }
 
-// ---- Category Management ----
-function renderCategories() {
-    const list = document.getElementById('category-list');
-    list.innerHTML = categories.map((c) => `
-        <div class="inventory-item">
-            <div class="item-info">
-                <h3>${c.name.ru} / ${c.name.uz} / ${c.name.en}</h3>
-            </div>
-            <button onclick="deleteCategory('${c.id}')" class="btn-link" style="color: #ef4444;">Удалить</button>
-        </div>
-    `).join('');
-    updateSubCategorySelect();
-}
-
-async function addCategory(e) {
-    e.preventDefault();
-    const id = 'cat_' + Date.now();
-    const name = {
-        ru: document.getElementById('cat-name-ru').value,
-        uz: document.getElementById('cat-name-uz').value,
-        en: document.getElementById('cat-name-en').value
-    };
-    
-    const { error } = await supabaseClient.from('categories').insert([{ id, name }]);
-    if (error) {
-        alert("Ошибка при добавлении категории: " + error.message + "\nКод: " + error.code);
-        return;
+// ---- Multi Image Helpers ----
+function previewMultiImg(event, index) {
+    const reader = new FileReader();
+    reader.onload = function() {
+        document.getElementById(`preview-${index}`).innerHTML = `<img src="${reader.result}">`;
     }
-    await initAdmin();
-    closeCategoryModal();
-    e.target.reset();
+    reader.readAsDataURL(event.target.files[0]);
 }
 
-function openCategoryModal() {
-    document.getElementById('category-form').reset();
-    document.getElementById('category-modal').classList.add('active');
+async function uploadImage(file) {
+    const fileName = `${Date.now()}_${file.name}`;
+    const { data, error } = await supabaseClient.storage
+        .from('product-images')
+        .upload(fileName, file);
+    
+    if (error) throw error;
+    
+    const { data: { publicUrl } } = supabaseClient.storage
+        .from('product-images')
+        .getPublicUrl(fileName);
+        
+    return publicUrl;
 }
 
-function closeCategoryModal() {
-    document.getElementById('category-modal').classList.remove('active');
-}
-
-async function deleteCategory(id) {
-    if (confirm("Удалить эту категорию?")) {
-        await supabaseClient.from('categories').delete().eq('id', id);
-        await initAdmin();
-    }
-}
-
-function updateSubCategorySelect() {
-    const select = document.getElementById('prod-sub-category');
-    select.innerHTML = categories.map(c => `<option value="${c.id}">${c.name.ru}</option>`).join('');
-}
-
-// ---- Inventory Management ----
+// ---- Product Management ----
 function renderInventory() {
     const list = document.getElementById('inventory-list');
     list.innerHTML = products.map((p) => `
         <div class="inventory-item">
-            <img src="${p.image}" class="item-thumb">
+            <img src="${p.images ? p.images[0] : p.image}" class="item-thumb">
             <div class="item-info">
                 <h3>${p.name.ru}</h3>
-                <span>${p.category} | ${p.sub_category ? categories.find(c=>c.id===p.sub_category)?.name.ru : ''}</span>
+                <span>${p.category}</span>
             </div>
             <div class="item-actions">
                 <button onclick="editProduct(${p.id})" class="btn-link">Редактировать</button>
@@ -297,7 +196,9 @@ function openAddModal() {
     document.getElementById('product-form').reset();
     document.getElementById('edit-id').value = "";
     document.getElementById('modal-type-title').innerText = "Добавить новый товар";
-    document.getElementById('img-preview-container').innerHTML = "<span>Нажмите, чтобы выбрать фото</span>";
+    for(let i=1; i<=4; i++) {
+        document.getElementById(`preview-${i}`).innerHTML = `<span>${i===1?'Главное':'Фото '+i}</span>`;
+    }
     modal.classList.add('active');
 }
 
@@ -316,86 +217,113 @@ function editProduct(id) {
     document.getElementById('desc-uz').value = p.desc.uz;
     document.getElementById('desc-en').value = p.desc.en;
     document.getElementById('prod-sizes').value = (p.sizes || []).join(', ');
-    document.getElementById('img-preview-container').innerHTML = `<img src="${p.image}">`;
+    
+    const imgs = p.images || [p.image];
+    for(let i=1; i<=4; i++) {
+        const preview = document.getElementById(`preview-${i}`);
+        if (imgs[i-1]) {
+            preview.innerHTML = `<img src="${imgs[i-1]}">`;
+        } else {
+            preview.innerHTML = `<span>Фото ${i}</span>`;
+        }
+    }
     modal.classList.add('active');
-}
-
-async function uploadImage(file) {
-    const fileName = `${Date.now()}_${file.name}`;
-    const { data, error } = await supabaseClient.storage
-        .from('product-images')
-        .upload(fileName, file);
-    
-    if (error) throw error;
-    
-    const { data: { publicUrl } } = supabaseClient.storage
-        .from('product-images')
-        .getPublicUrl(fileName);
-        
-    return publicUrl;
 }
 
 document.getElementById('product-form').onsubmit = async function(e) {
     e.preventDefault();
-    const btn = e.target.querySelector('button[type="submit"]');
+    const btn = document.getElementById('save-product-btn');
     btn.disabled = true;
     btn.innerText = "Сохранение...";
 
     try {
         const editId = document.getElementById('edit-id').value;
-        const fileInput = document.getElementById('prod-img');
-        let imageUrl = document.querySelector('#img-preview-container img')?.src;
+        let imageUrls = [];
 
-        if (fileInput.files[0]) {
-            imageUrl = await uploadImage(fileInput.files[0]);
+        // Collect existing and new images
+        for(let i=1; i<=4; i++) {
+            const fileInput = document.getElementById(`img-${i}`);
+            const previewImg = document.querySelector(`#preview-${i} img`);
+            
+            if (fileInput.files[0]) {
+                const url = await uploadImage(fileInput.files[0]);
+                imageUrls.push(url);
+            } else if (previewImg && previewImg.src.startsWith('http')) {
+                imageUrls.push(previewImg.src);
+            }
         }
 
         const productData = {
-            name: {
-                ru: document.getElementById('name-ru').value,
-                uz: document.getElementById('name-uz').value,
-                en: document.getElementById('name-en').value
-            },
+            name: { ru: document.getElementById('name-ru').value, uz: document.getElementById('name-uz').value, en: document.getElementById('name-en').value },
             category: document.getElementById('prod-category').value,
             sub_category: document.getElementById('prod-sub-category').value,
-            desc: {
-                ru: document.getElementById('desc-ru').value,
-                uz: document.getElementById('desc-uz').value,
-                en: document.getElementById('desc-en').value
-            },
-            image: imageUrl,
+            desc: { ru: document.getElementById('desc-ru').value, uz: document.getElementById('desc-uz').value, en: document.getElementById('desc-en').value },
+            images: imageUrls,
+            image: imageUrls[0], // for backward compatibility
             sizes: document.getElementById('prod-sizes').value.split(',').map(s => s.trim())
         };
 
-        let res;
         if (editId) {
-            res = await supabaseClient.from('products').update(productData).eq('id', editId);
+            await supabaseClient.from('products').update(productData).eq('id', editId);
         } else {
-            res = await supabaseClient.from('products').insert([productData]);
-        }
-
-        if (res.error) {
-            throw new Error(res.error.message + " (Code: " + res.error.code + ")");
+            await supabaseClient.from('products').insert([productData]);
         }
 
         await initAdmin();
         closeAdminModal();
     } catch (err) {
-        alert("Ошибка при сохранении: " + err.message);
+        alert("Ошибка: " + err.message);
     } finally {
         btn.disabled = false;
         btn.innerText = "Сохранить товар";
     }
 };
 
+// ---- Categories ----
+function renderCategories() {
+    const list = document.getElementById('category-list');
+    list.innerHTML = categories.map((c) => `
+        <div class="inventory-item">
+            <div class="item-info"><h3>${c.name.ru}</h3></div>
+            <button onclick="deleteCategory('${c.id}')" class="btn-link" style="color: #ef4444;">Удалить</button>
+        </div>
+    `).join('');
+    updateSubCategorySelect();
+}
+
+async function addCategory(e) {
+    e.preventDefault();
+    const id = 'cat_' + Date.now();
+    const name = { ru: document.getElementById('cat-name-ru').value, uz: document.getElementById('cat-name-uz').value, en: document.getElementById('cat-name-en').value };
+    await supabaseClient.from('categories').insert([{ id, name }]);
+    await initAdmin();
+    closeCategoryModal();
+    e.target.reset();
+}
+
+function openCategoryModal() { document.getElementById('category-modal').classList.add('active'); }
+function closeCategoryModal() { document.getElementById('category-modal').classList.remove('active'); }
+
+async function deleteCategory(id) {
+    if (confirm("Удалить?")) {
+        await supabaseClient.from('categories').delete().eq('id', id);
+        await initAdmin();
+    }
+}
+
+function updateSubCategorySelect() {
+    const select = document.getElementById('prod-sub-category');
+    select.innerHTML = categories.map(c => `<option value="${c.id}">${c.name.ru}</option>`).join('');
+}
+
 async function deleteProduct(id) {
-    if (confirm("Удалить этот товар?")) {
+    if (confirm("Удалить?")) {
         await supabaseClient.from('products').delete().eq('id', id);
         await initAdmin();
     }
 }
 
-// --- Settings & Utils ---
+// --- Settings ---
 function loadSettings() {
     if (!settings.title) return;
     document.getElementById('set-title-ru').value = settings.title.ru;
@@ -412,37 +340,26 @@ async function saveSettings() {
         desc: { ru: document.getElementById('set-desc-ru').value, uz: document.getElementById('set-desc-uz').value, en: document.getElementById('set-desc-en').value }
     };
     await supabaseClient.from('settings').update(newSettings).eq('id', 1);
-    alert("Настройки сохранены в облаке!");
+    alert("Сохранено!");
     await loadData();
 }
 
 function usePreset(type) {
-    const presets = { sml: "S, M, L, XL", age: "1-2 года, 2-3 года, 3-4 года", height: "86, 92, 98, 104, 110" };
+    const presets = { sml: "S, M, L, XL", age: "1-2 года, 2-3 года", height: "86, 92, 98" };
     document.getElementById('prod-sizes').value = presets[type];
-}
-
-function previewImg(event) {
-    const reader = new FileReader();
-    reader.onload = function() { document.getElementById('img-preview-container').innerHTML = `<img src="${reader.result}">`; }
-    reader.readAsDataURL(event.target.files[0]);
 }
 
 function closeAdminModal() { document.getElementById('product-modal').classList.remove('active'); }
 
 window.onclick = (e) => { 
-    const pModal = document.getElementById('product-modal');
-    const cModal = document.getElementById('category-modal');
-    if (e.target === pModal) closeAdminModal(); 
-    if (e.target === cModal) closeCategoryModal();
+    if (e.target === document.getElementById('product-modal')) closeAdminModal(); 
+    if (e.target === document.getElementById('category-modal')) closeCategoryModal();
     const lDrop = document.getElementById('admin-lang-dropdown');
     if (lDrop) lDrop.classList.remove('active');
 }
 
-// Initial session check
-if (sessionStorage.getItem('admin_logged_in') === 'true' || sessionToken) {
-    checkSession().then(isOk => {
-        if (isOk || sessionStorage.getItem('admin_logged_in') === 'true') {
-            enterDashboard();
-        }
-    });
+if (sessionStorage.getItem('admin_logged_in') === 'true') {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-dashboard').style.display = 'block';
+    initAdmin();
 }
