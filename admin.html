@@ -39,7 +39,12 @@
                     <span class="admin-badge">Admin</span>
                 </div>
                 <div class="nav-actions">
-                    <button onclick="location.href='index.html'" class="btn-link" style="margin-right: 20px;">На сайт</button>
+                    <div class="lang-switcher" style="margin-right: 20px;">
+                        <button onclick="setAdminLanguage('ru')" class="lang-btn-admin active" id="btn-ru">RU</button>
+                        <button onclick="setAdminLanguage('uz')" class="lang-btn-admin" id="btn-uz">UZ</button>
+                        <button onclick="setAdminLanguage('en')" class="lang-btn-admin" id="btn-en">EN</button>
+                    </div>
+                    <button onclick="location.href='index.html'" class="btn-link" style="margin-right: 20px;" id="btn-to-site">На сайт</button>
                     <button onclick="openAddModal(); event.stopPropagation();" class="btn-primary">+ Добавить товар</button>
                     <button onclick="logout(); event.stopPropagation();" class="btn-link">Выйти</button>
                 </div>
@@ -56,8 +61,8 @@
             <!-- Inventory Tab -->
             <div id="tab-inventory-content">
                 <div class="admin-header">
-                    <h1>Управление инвентарем</h1>
-                    <p>Добавляйте товары и меняйте наличие размеров.</p>
+                    <h1 id="inv-title">Управление инвентарем</h1>
+                    <p id="inv-desc">Добавляйте товары и меняйте наличие размеров.</p>
                 </div>
                 <div class="inventory-list" id="inventory-list"></div>
             </div>
@@ -67,10 +72,10 @@
                 <div class="admin-header">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <h1>Категории одежды</h1>
-                            <p>Управление типами одежды (Брюки, Обувь и т.д.)</p>
+                            <h1 id="cat-title">Категории одежды</h1>
+                            <p id="cat-desc">Управление типами одежды (Брюки, Обувь и т.д.)</p>
                         </div>
-                        <button onclick="openCategoryModal()" class="btn-primary">+ Добавить категорию</button>
+                        <button onclick="openCategoryModal()" class="btn-primary" id="btn-add-cat">+ Добавить категорию</button>
                     </div>
                 </div>
                 
@@ -104,25 +109,25 @@
             <!-- Settings Tab -->
             <div id="tab-settings-content" style="display: none;">
                 <div class="admin-header">
-                    <h1>Настройки сайта</h1>
-                    <p>Тексты на главной странице (Hero Section).</p>
+                    <h1 id="set-title-h1">Настройки сайта</h1>
+                    <p id="set-desc-p">Тексты на главной странице (Hero Section).</p>
                 </div>
                 <form id="settings-form" class="admin-form card-form">
                     <div class="form-grid">
                         <div class="form-section">
-                            <h3>Заголовок (Hero Title)</h3>
+                            <h3 id="set-hero-title">Заголовок (Hero Title)</h3>
                             <input type="text" id="set-title-ru" placeholder="RU">
                             <input type="text" id="set-title-uz" placeholder="UZ">
                             <input type="text" id="set-title-en" placeholder="EN">
                         </div>
                         <div class="form-section">
-                            <h3>Описание (Hero Description)</h3>
+                            <h3 id="set-hero-desc">Описание (Hero Description)</h3>
                             <textarea id="set-desc-ru" placeholder="RU"></textarea>
                             <textarea id="set-desc-uz" placeholder="UZ"></textarea>
                             <textarea id="set-desc-en" placeholder="EN"></textarea>
                         </div>
                     </div>
-                    <button type="button" onclick="saveSettings()" class="btn-primary">Сохранить настройки</button>
+                    <button type="button" onclick="saveSettings()" class="btn-primary" id="btn-save-settings">Сохранить настройки</button>
                 </form>
             </div>
         </main>

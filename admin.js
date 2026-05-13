@@ -6,6 +6,63 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const ADMIN_USER = "BrandKidsAdmin_2026";
 const ADMIN_PASS = "BK_Secure_99!_Store";
 
+const T_ADMIN = {
+    ru: {
+        toSite: "На сайт", addProduct: "+ Добавить товар", logout: "Выйти",
+        tabInv: "Инвентарь", tabCat: "Категории", tabSet: "Настройки",
+        invTitle: "Управление инвентарем", invDesc: "Добавляйте товары и размеры.",
+        catTitle: "Категории одежды", catDesc: "Управление типами одежды.",
+        addCat: "+ Добавить категорию", setTitle: "Настройки сайта", setDesc: "Главный экран сайта.",
+        heroTitle: "Заголовок", heroDesc: "Описание", save: "Сохранить"
+    },
+    uz: {
+        toSite: "Saytga", addProduct: "+ Mahsulot qo'shish", logout: "Chiqish",
+        tabInv: "Inventar", tabCat: "Kategoriyalar", tabSet: "Sozlamalar",
+        invTitle: "Inventarni boshqarish", invDesc: "Mahsulotlar va o'lchamlarni qo'shing.",
+        catTitle: "Kiyim kategoriyalari", catDesc: "Kiyim turlarini boshqarish.",
+        addCat: "+ Kategoriya qo'shish", setTitle: "Sayt sozlamalari", setDesc: "Saytning asosiy ekrani.",
+        heroTitle: "Sarlavha", heroDesc: "Tavsif", save: "Saqlash"
+    },
+    en: {
+        toSite: "To Site", addProduct: "+ Add Product", logout: "Logout",
+        tabInv: "Inventory", tabCat: "Categories", tabSet: "Settings",
+        invTitle: "Inventory Management", invDesc: "Add products and sizes.",
+        catTitle: "Clothing Categories", catDesc: "Manage clothing types.",
+        addCat: "+ Add Category", setTitle: "Site Settings", setDesc: "Main landing screen.",
+        heroTitle: "Title", heroDesc: "Description", save: "Save"
+    }
+};
+
+let currentLang = 'ru';
+
+function setAdminLanguage(lang) {
+    currentLang = lang;
+    document.querySelectorAll('.lang-btn-admin').forEach(btn => btn.classList.toggle('active', btn.id === `btn-${lang}`));
+    
+    document.getElementById('btn-to-site').innerText = T_ADMIN[lang].toSite;
+    document.querySelector('button[onclick*="openAddModal"]').innerText = T_ADMIN[lang].addProduct;
+    document.querySelector('button[onclick*="logout"]').innerText = T_ADMIN[lang].logout;
+    
+    document.getElementById('tab-inv').innerText = T_ADMIN[lang].tabInv;
+    document.getElementById('tab-cat').innerText = T_ADMIN[lang].tabCat;
+    document.getElementById('tab-set').innerText = T_ADMIN[lang].tabSet;
+    
+    document.getElementById('inv-title').innerText = T_ADMIN[lang].invTitle;
+    document.getElementById('inv-desc').innerText = T_ADMIN[lang].invDesc;
+    document.getElementById('cat-title').innerText = T_ADMIN[lang].catTitle;
+    document.getElementById('cat-desc').innerText = T_ADMIN[lang].catDesc;
+    document.getElementById('btn-add-cat').innerText = T_ADMIN[lang].addCat;
+    
+    document.getElementById('set-title-h1').innerText = T_ADMIN[lang].setTitle;
+    document.getElementById('set-desc-p').innerText = T_ADMIN[lang].setDesc;
+    document.getElementById('set-hero-title').innerText = T_ADMIN[lang].heroTitle;
+    document.getElementById('set-hero-desc').innerText = T_ADMIN[lang].heroDesc;
+    document.getElementById('btn-save-settings').innerText = T_ADMIN[lang].save;
+    
+    renderInventory();
+    renderCategories();
+}
+
 // Check if already logged in
 if (sessionStorage.getItem('admin_logged_in') === 'true') {
     window.onload = () => {
@@ -37,6 +94,7 @@ async function initAdmin() {
     renderCategories();
     loadSettings();
     updateSubCategorySelect();
+    setAdminLanguage(currentLang);
 }
 
 async function loadData() {
@@ -178,7 +236,7 @@ document.getElementById('product-form').onsubmit = async function(e) {
 
     try {
         const editId = document.getElementById('edit-id').value;
-        const fileInput = document.getElementById('prod-image');
+        const fileInput = document.getElementById('prod-img');
         let imageUrl = document.querySelector('#img-preview-container img')?.src;
 
         if (fileInput.files[0]) {
