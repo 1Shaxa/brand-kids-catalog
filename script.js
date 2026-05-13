@@ -16,9 +16,9 @@ let SETTINGS = {
 };
 
 const T = {
-    ru: { all: "Все", boys: "Мальчики", girls: "Девочки", baby: "Малыши", catalogTitle: "Каталог товаров", allSizes: "Bсе размеры", contactTg: "Уточнить в Telegram", availableSizes: "Доступные размеры:", sizeSuffix: "", footerContact: "Контакты", footerLinks: "Инструменты", footerTg: "Написать в Telegram", footerMap: "На карте", footerBrandDesc: "Brand Kids — премиальная одежда для ваших детей. Качество, стиль и комфорт в каждой детали." },
-    uz: { all: "Barchasi", boys: "O'g'il bolalar", girls: "Qiz bolalar", baby: "Chaqaloqlar", catalogTitle: "Mahsulotlar katalogi", allSizes: "Barcha o'lchamlar", contactTg: "Telegram orqali so'rash", availableSizes: "Mavjud o'lchamlar:", sizeSuffix: " yosh", footerContact: "Kontaktlar", footerLinks: "Asboblar", footerTg: "Telegram orqali yozish", footerMap: "Xaritada", footerBrandDesc: "Brand Kids — farzandlaringiz uchun premium kiyimlar. Har bir detaldagi sifat, uslub va qulaylik." },
-    en: { all: "All", boys: "Boys", girls: "Girls", baby: "Baby", catalogTitle: "Product Catalog", allSizes: "All sizes", contactTg: "Inquire via Telegram", availableSizes: "Available sizes:", sizeSuffix: "Y", footerContact: "Contacts", footerLinks: "Tools", footerTg: "Message on Telegram", footerMap: "On the map", footerBrandDesc: "Brand Kids — premium clothing for your children. Quality, style and comfort in every detail." }
+    ru: { all: "Все", boys: "Мальчики", girls: "Девочки", baby: "Малыши", catalogTitle: "Каталог товаров", allSizes: "Bсе размеры", contactTg: "Уточнить в Telegram", availableSizes: "Доступные размеры:", sizeSuffix: "", footerContact: "Контакты", footerLinks: "Инструменты", footerTg: "Написать в Telegram", footerMap: "Google Карты", footerYandex: "Яндекс Карты", footerBrandDesc: "Brand Kids — премиальная одежда для ваших детей. Качество, стиль и комфорт в каждой детали." },
+    uz: { all: "Barchasi", boys: "O'g'il bolalar", girls: "Qiz bolalar", baby: "Chaqaloqlar", catalogTitle: "Mahsulotlar katalogi", allSizes: "Barcha o'lchamlar", contactTg: "Telegram orqali so'rash", availableSizes: "Mavjud o'lchamlar:", sizeSuffix: " yosh", footerContact: "Kontaktlar", footerLinks: "Asboblar", footerTg: "Telegram orqali yozish", footerMap: "Google Xaritalar", footerYandex: "Yandex Xaritalar", footerBrandDesc: "Brand Kids — farzandlaringiz uchun premium kiyimlar. Har bir detaldagi sifat, uslub va qulaylik." },
+    en: { all: "All", boys: "Boys", girls: "Girls", baby: "Baby", catalogTitle: "Product Catalog", allSizes: "All sizes", contactTg: "Inquire via Telegram", availableSizes: "Available sizes:", sizeSuffix: "Y", footerContact: "Contacts", footerLinks: "Tools", footerTg: "Message on Telegram", footerMap: "Google Maps", footerYandex: "Yandex Maps", footerBrandDesc: "Brand Kids — premium clothing for your children. Quality, style and comfort in every detail." }
 };
 
 const grid = document.getElementById('product-grid');
@@ -64,6 +64,7 @@ function setLanguage(lang) {
     document.getElementById('footer-links-title').innerText = T[lang].footerLinks;
     document.getElementById('footer-tg-text').innerText = T[lang].footerTg;
     document.getElementById('footer-map-text').innerText = T[lang].footerMap;
+    document.getElementById('footer-yandex-text').innerText = T[lang].footerYandex;
     document.getElementById('footer-brand-desc').innerText = T[lang].footerBrandDesc;
 
     renderSubNav();
