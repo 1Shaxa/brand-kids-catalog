@@ -3,8 +3,17 @@ const SUPABASE_URL = 'https://yopdjvjaigregbfqxjke.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvcGRqdmphaWdyZWdiZnF4amtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2NjI1MTksImV4cCI6MjA5NDIzODUxOX0.pa1PoZYyvOPBc_1eTYbW6wodACrg-riRWtDSiEKuNe8';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const ADMIN_USER = "admin";
-const ADMIN_PASS = "brandkids123";
+const ADMIN_USER = "BrandKidsAdmin_2026";
+const ADMIN_PASS = "BK_Secure_99!_Store";
+
+// Check if already logged in
+if (sessionStorage.getItem('admin_logged_in') === 'true') {
+    window.onload = () => {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('admin-dashboard').style.display = 'block';
+        initAdmin();
+    };
+}
 
 let products = [];
 let categories = [];
@@ -13,6 +22,7 @@ let settings = {};
 // ---- Login & Init ----
 function checkLogin() {
     if (document.getElementById('admin-user').value === ADMIN_USER && document.getElementById('admin-pass').value === ADMIN_PASS) {
+        sessionStorage.setItem('admin_logged_in', 'true');
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('admin-dashboard').style.display = 'block';
         initAdmin();
