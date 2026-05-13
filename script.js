@@ -140,8 +140,8 @@ function renderProducts() {
 
     grid.innerHTML = filtered.map(product => `
         <div class="product-card" onclick="openProduct(${product.id})">
-            <div class="product-image">
-                <img src="${product.image}" alt="${product.name[LANG]}">
+            <div class="product-image-wrapper">
+                <img src="${product.image}" alt="${product.name[LANG]}" loading="lazy">
             </div>
             <div class="product-info">
                 <h3>${product.name[LANG]}</h3>
