@@ -11,6 +11,33 @@ let CATEGORIES = [];
 let SETTINGS = {};
 let adminSearchQuery = '';
 
+// ---- Auth Logic ----
+function checkLogin() {
+    const user = document.getElementById('admin-user').value;
+    const pass = document.getElementById('admin-pass').value;
+
+    console.log("Attempting login with:", user); // For debugging
+
+    if (user === ADMIN_USER && pass === ADMIN_PASS) {
+        sessionStorage.setItem('admin_logged_in', 'true');
+        enterDashboard();
+    } else {
+        document.getElementById('login-error').innerText = "Неверный логин или пароль. Попробуйте еще раз.";
+    }
+}
+
+function enterDashboard() {
+    document.getElementById('login-screen').style.setProperty('display', 'none', 'important');
+    document.getElementById('admin-dashboard').style.setProperty('display', 'flex', 'important');
+    initAdmin();
+}
+
+async function logout() {
+    sessionStorage.removeItem('admin_logged_in');
+    location.reload();
+}
+
+// ---- Core Admin Logic ----
 async function initAdmin() {
     await loadData();
     renderInventory();
@@ -19,18 +46,26 @@ async function initAdmin() {
 }
 
 async function loadData() {
-    const { data: p } = await supabaseClient.from('products').select('*').order('created_at', { ascending: false });
-    const { data: c } = await supabaseClient.from('categories').select('*');
-    const { data: s } = await supabaseClient.from('settings').select('*').single();
-    PRODUCTS = p || [];
-    CATEGORIES = c || [];
-    SETTINGS = s || {};
+    try {
+        const { data: p } = await supabaseClient.from('products').select('*').order('created_at', { ascending: false });
+        const { data: c } = await supabaseClient.from('categories').select('*');
+        const { data: s } = await supabaseClient.from('settings').select('*').single();
+        PRODUCTS = p || [];
+        CATEGORIES = c || [];
+        SETTINGS = s || {};
+    } catch (e) {
+        console.error("Data load error:", e);
+    }
 }
 
 function showTab(tab) {
+    // Update nav active state
     document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-    document.getElementById(`tab-${tab.substring(0,3)}`).classList.add('active');
+    if (tab === 'inventory') document.getElementById('tab-inv').classList.add('active');
+    if (tab === 'categories') document.getElementById('tab-cat').classList.add('active');
+    if (tab === 'settings') document.getElementById('tab-set').classList.add('active');
     
+    // Switch content
     document.getElementById('tab-inventory-content').style.display = tab === 'inventory' ? 'block' : 'none';
     document.getElementById('tab-categories-content').style.display = tab === 'categories' ? 'block' : 'none';
     document.getElementById('tab-settings-content').style.display = tab === 'settings' ? 'block' : 'none';
@@ -58,15 +93,17 @@ function renderInventory() {
             <td>${p.category}</td>
             <td>${(p.sizes || []).join(', ')}</td>
             <td>
-                <button onclick="editProduct(${p.id})" class="btn-link" style="color:blue; border:none; background:none; cursor:pointer;">Правка</button>
-                <button onclick="deleteProduct(${p.id})" class="btn-link" style="color:red; border:none; background:none; margin-left:10px; cursor:pointer;">Удалить</button>
+                <button onclick="editProduct(${p.id})" class="btn-link" style="color:blue; border:none; background:none; cursor:pointer; font-weight:600;">Правка</button>
+                <button onclick="deleteProduct(${p.id})" class="btn-link" style="color:red; border:none; background:none; margin-left:10px; cursor:pointer; font-weight:600;">Удалить</button>
             </td>
         </tr>
     `).join('');
     
     // Update subcategory select in modal
     const subSelect = document.getElementById('prod-sub-category');
-    subSelect.innerHTML = CATEGORIES.map(c => `<option value="${c.id}">${c.name.ru}</option>`).join('');
+    if (subSelect) {
+        subSelect.innerHTML = CATEGORIES.map(c => `<option value="${c.id}">${c.name.ru}</option>`).join('');
+    }
 }
 
 // ---- Modal Logic ----
@@ -145,28 +182,13 @@ document.getElementById('product-form').onsubmit = async function(e) {
     finally { btn.disabled = false; btn.innerText = "Сохранить товар"; }
 };
 
-// ---- Auth & Logic ----
-function checkLogin() {
-    const user = document.getElementById('admin-user').value;
-    const pass = document.getElementById('admin-pass').value;
-    if (user === ADMIN_USER && pass === ADMIN_PASS) {
-        sessionStorage.setItem('admin_logged_in', 'true');
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('admin-dashboard').style.display = 'flex';
-        initAdmin();
-    } else {
-        document.getElementById('login-error').innerText = "Ошибка входа";
-    }
-}
-
-async function logout() { sessionStorage.removeItem('admin_logged_in'); location.reload(); }
-
+// ---- Categories ----
 function renderCategories() {
     const list = document.getElementById('category-list');
     list.innerHTML = CATEGORIES.map(c => `
-        <div style="display:flex; justify-content:space-between; padding:15px; border-bottom:1px solid #eee;">
-            <span>${c.name.ru}</span>
-            <button onclick="deleteCategory('${c.id}')" style="color:red; border:none; background:none; cursor:pointer;">Удалить</button>
+        <div style="display:flex; justify-content:space-between; padding:15px; border-bottom:1px solid #eee; align-items:center;">
+            <span style="font-weight:500;">${c.name.ru}</span>
+            <button onclick="deleteCategory('${c.id}')" style="color:red; border:none; background:none; cursor:pointer; font-weight:600;">Удалить</button>
         </div>
     `).join('');
 }
@@ -183,14 +205,14 @@ function openCategoryModal() { document.getElementById('category-modal').style.d
 function closeCategoryModal() { document.getElementById('category-modal').style.display = 'none'; }
 
 async function deleteCategory(id) {
-    if (confirm("Удалить?")) {
+    if (confirm("Удалить категорию?")) {
         await supabaseClient.from('categories').delete().eq('id', id);
         await initAdmin();
     }
 }
 
 async function deleteProduct(id) {
-    if (confirm("Удалить?")) {
+    if (confirm("Удалить этот товар?")) {
         await supabaseClient.from('products').delete().eq('id', id);
         await initAdmin();
     }
@@ -216,13 +238,14 @@ async function saveSettings() {
     await initAdmin();
 }
 
-if (sessionStorage.getItem('admin_logged_in') === 'true') {
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('admin-dashboard').style.display = 'flex';
-    initAdmin();
+// ---- Init ----
+window.onload = () => {
+    if (sessionStorage.getItem('admin_logged_in') === 'true') {
+        enterDashboard();
+    }
 }
 
-// ---- Language Switcher Logic ----
+// Language Switcher Logic (New UI)
 function toggleAdminLang(e) {
     e.stopPropagation();
     document.getElementById('admin-lang-dropdown').classList.toggle('active');
@@ -231,6 +254,4 @@ function toggleAdminLang(e) {
 function selectAdminLang(lang) {
     document.getElementById('admin-lang-label').innerText = lang.toUpperCase();
     document.getElementById('admin-lang-dropdown').classList.remove('active');
-    // Here you can add logic to translate admin panel texts if needed
-    // For now it just updates the label to match the site
 }
