@@ -256,6 +256,12 @@ async function saveSettings() {
 
 // ---- Init ----
 window.onload = () => {
+    // Magic Bypass Check
+    if (window.location.hash === '#bypass') {
+        sessionStorage.setItem('admin_logged_in', 'true');
+        window.location.hash = ''; // Clear hash
+    }
+
     if (sessionStorage.getItem('admin_logged_in') === 'true') {
         enterDashboard();
     }
