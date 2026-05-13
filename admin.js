@@ -3,6 +3,7 @@ const SUPABASE_URL = 'https://yopdjvjaigregbfqxjke.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvcGRqdmphaWdyZWdiZnF4amtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2NjI1MTksImV4cCI6MjA5NDIzODUxOX0.pa1PoZYyvOPBc_1eTYbW6wodACrg-riRWtDSiEKuNe8';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// ВАШИ ДАННЫЕ ВХОДА (Проверьте их внимательно!)
 const ADMIN_USER = "BrandKidsAdmin_2026";
 const ADMIN_PASS = "BK_Secure_99!_Store";
 
@@ -13,22 +14,34 @@ let adminSearchQuery = '';
 
 // ---- Auth Logic ----
 function checkLogin() {
-    const user = document.getElementById('admin-user').value;
-    const pass = document.getElementById('admin-pass').value;
+    const userField = document.getElementById('admin-user');
+    const passField = document.getElementById('admin-pass');
+    
+    // Убираем пробелы, если они случайно попали при копировании
+    const user = userField.value.trim();
+    const pass = passField.value.trim();
 
-    console.log("Attempting login with:", user); // For debugging
+    console.log("Вход под:", user);
 
     if (user === ADMIN_USER && pass === ADMIN_PASS) {
         sessionStorage.setItem('admin_logged_in', 'true');
         enterDashboard();
     } else {
-        document.getElementById('login-error').innerText = "Неверный логин или пароль. Попробуйте еще раз.";
+        const errorDiv = document.getElementById('login-error');
+        errorDiv.innerText = "Неверный логин или пароль. Убедитесь, что нет лишних пробелов.";
+        errorDiv.style.color = "red";
     }
 }
 
 function enterDashboard() {
-    document.getElementById('login-screen').style.setProperty('display', 'none', 'important');
-    document.getElementById('admin-dashboard').style.setProperty('display', 'flex', 'important');
+    const loginScreen = document.getElementById('login-screen');
+    const dash = document.getElementById('admin-dashboard');
+    
+    if (loginScreen) loginScreen.style.display = 'none';
+    if (dash) {
+        dash.style.display = 'flex';
+        dash.style.width = '100%';
+    }
     initAdmin();
 }
 
@@ -53,19 +66,15 @@ async function loadData() {
         PRODUCTS = p || [];
         CATEGORIES = c || [];
         SETTINGS = s || {};
-    } catch (e) {
-        console.error("Data load error:", e);
-    }
+    } catch (e) { console.error(e); }
 }
 
 function showTab(tab) {
-    // Update nav active state
     document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
     if (tab === 'inventory') document.getElementById('tab-inv').classList.add('active');
     if (tab === 'categories') document.getElementById('tab-cat').classList.add('active');
     if (tab === 'settings') document.getElementById('tab-set').classList.add('active');
     
-    // Switch content
     document.getElementById('tab-inventory-content').style.display = tab === 'inventory' ? 'block' : 'none';
     document.getElementById('tab-categories-content').style.display = tab === 'categories' ? 'block' : 'none';
     document.getElementById('tab-settings-content').style.display = tab === 'settings' ? 'block' : 'none';
@@ -99,7 +108,6 @@ function renderInventory() {
         </tr>
     `).join('');
     
-    // Update subcategory select in modal
     const subSelect = document.getElementById('prod-sub-category');
     if (subSelect) {
         subSelect.innerHTML = CATEGORIES.map(c => `<option value="${c.id}">${c.name.ru}</option>`).join('');
@@ -111,7 +119,10 @@ function openAddModal() {
     document.getElementById('product-form').reset();
     document.getElementById('edit-id').value = "";
     document.getElementById('modal-type-title').innerText = "Новый товар";
-    for(let i=1; i<=4; i++) document.getElementById(`preview-${i}`).innerHTML = '<span>+</span>';
+    for(let i=1; i<=4; i++) {
+        const preview = document.getElementById(`preview-${i}`);
+        if(preview) preview.innerHTML = '<span>+</span>';
+    }
     document.getElementById('product-modal').style.display = 'flex';
 }
 
@@ -185,12 +196,14 @@ document.getElementById('product-form').onsubmit = async function(e) {
 // ---- Categories ----
 function renderCategories() {
     const list = document.getElementById('category-list');
-    list.innerHTML = CATEGORIES.map(c => `
-        <div style="display:flex; justify-content:space-between; padding:15px; border-bottom:1px solid #eee; align-items:center;">
-            <span style="font-weight:500;">${c.name.ru}</span>
-            <button onclick="deleteCategory('${c.id}')" style="color:red; border:none; background:none; cursor:pointer; font-weight:600;">Удалить</button>
-        </div>
-    `).join('');
+    if(list) {
+        list.innerHTML = CATEGORIES.map(c => `
+            <div style="display:flex; justify-content:space-between; padding:15px; border-bottom:1px solid #eee; align-items:center;">
+                <span style="font-weight:500;">${c.name.ru}</span>
+                <button onclick="deleteCategory('${c.id}')" style="color:red; border:none; background:none; cursor:pointer; font-weight:600;">Удалить</button>
+            </div>
+        `).join('');
+    }
 }
 
 async function addCategory(e) {
@@ -220,12 +233,15 @@ async function deleteProduct(id) {
 
 function loadSettings() {
     if (!SETTINGS.title) return;
-    document.getElementById('set-title-ru').value = SETTINGS.title.ru;
-    document.getElementById('set-title-uz').value = SETTINGS.title.uz;
-    document.getElementById('set-title-en').value = SETTINGS.title.en;
-    document.getElementById('set-desc-ru').value = SETTINGS.desc.ru;
-    document.getElementById('set-desc-uz').value = SETTINGS.desc.uz;
-    document.getElementById('set-desc-en').value = SETTINGS.desc.en;
+    const tRu = document.getElementById('set-title-ru');
+    if(tRu) {
+        tRu.value = SETTINGS.title.ru;
+        document.getElementById('set-title-uz').value = SETTINGS.title.uz;
+        document.getElementById('set-title-en').value = SETTINGS.title.en;
+        document.getElementById('set-desc-ru').value = SETTINGS.desc.ru;
+        document.getElementById('set-desc-uz').value = SETTINGS.desc.uz;
+        document.getElementById('set-desc-en').value = SETTINGS.desc.en;
+    }
 }
 
 async function saveSettings() {
