@@ -33,16 +33,14 @@
     <div id="admin-dashboard" style="display: none;">
         <nav class="navbar admin-nav">
             <div class="container nav-inner">
-                <div class="logo-wrap">
-                    <a href="index.html" style="display: flex; align-items: center; text-decoration: none; color: inherit;">
-                        <img src="logo.jpg" alt="Logo" class="nav-logo">
-                        <span class="admin-badge">Admin</span>
-                    </a>
+                <div class="logo-wrap" onclick="location.href='index.html'" style="cursor: pointer;">
+                    <img src="logo.jpg" alt="Logo" class="nav-logo">
+                    <span class="admin-badge">Admin</span>
                 </div>
                 <div class="nav-actions">
-                    <a href="index.html" class="btn-link" style="margin-right: 20px;">На сайт</a>
-                    <button onclick="openAddModal()" class="btn-primary">+ Добавить товар</button>
-                    <button onclick="logout()" class="btn-link">Выйти</button>
+                    <button onclick="location.href='index.html'" class="btn-link" style="margin-right: 20px;">На сайт</button>
+                    <button onclick="openAddModal(); event.stopPropagation();" class="btn-primary">+ Добавить товар</button>
+                    <button onclick="logout(); event.stopPropagation();" class="btn-link">Выйти</button>
                 </div>
             </div>
         </nav>
