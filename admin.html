@@ -65,23 +65,39 @@
             <!-- Categories Tab -->
             <div id="tab-categories-content" style="display: none;">
                 <div class="admin-header">
-                    <h1>Категории одежды</h1>
-                    <p>Добавьте типы одежды (напр: Брюки, Обувь, Платья).</p>
-                </div>
-                <form id="category-form" class="admin-form card-form" onsubmit="addCategory(event)">
-                    <div class="form-grid">
-                        <div class="form-section">
-                            <input type="text" id="cat-name-ru" placeholder="Название (RU)" required>
-                            <input type="text" id="cat-name-uz" placeholder="Название (UZ)" required>
-                            <input type="text" id="cat-name-en" placeholder="Название (EN)" required>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h1>Категории одежды</h1>
+                            <p>Управление типами одежды (Брюки, Обувь и т.д.)</p>
                         </div>
-                        <div class="form-section">
-                            <button type="submit" class="btn-primary" style="width: 100%;">Добавить категорию</button>
-                        </div>
+                        <button onclick="openCategoryModal()" class="btn-primary">+ Добавить категорию</button>
                     </div>
-                </form>
+                </div>
+                
                 <div class="category-list" id="category-list">
                     <!-- Categories will be listed here -->
+                </div>
+            </div>
+
+            <!-- Category Modal -->
+            <div class="modal-overlay" id="category-modal">
+                <div class="modal-content admin-modal small-modal">
+                    <button class="close-modal" onclick="closeCategoryModal()">&times;</button>
+                    <div class="modal-header">
+                        <h2>Добавить категорию</h2>
+                    </div>
+                    <form id="category-form" class="admin-form" onsubmit="addCategory(event)">
+                        <label>Название на русском</label>
+                        <input type="text" id="cat-name-ru" placeholder="Напр: Брюки" required>
+                        <label>Название на узбекском</label>
+                        <input type="text" id="cat-name-uz" placeholder="Nas: Shimlar" required>
+                        <label>Название на английском</label>
+                        <input type="text" id="cat-name-en" placeholder="Ex: Pants" required>
+                        
+                        <div class="form-footer" style="margin-top: 20px;">
+                            <button type="submit" class="btn-primary" style="width: 100%;">Сохранить категорию</button>
+                        </div>
+                    </form>
                 </div>
             </div>
 

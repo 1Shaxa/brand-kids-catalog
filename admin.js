@@ -84,7 +84,17 @@ async function addCategory(e) {
     
     await supabaseClient.from('categories').insert([{ id, name }]);
     await initAdmin();
+    closeCategoryModal();
     e.target.reset();
+}
+
+function openCategoryModal() {
+    document.getElementById('category-form').reset();
+    document.getElementById('category-modal').classList.add('active');
+}
+
+function closeCategoryModal() {
+    document.getElementById('category-modal').classList.remove('active');
 }
 
 async function deleteCategory(id) {
@@ -247,5 +257,12 @@ function previewImg(event) {
     reader.readAsDataURL(event.target.files[0]);
 }
 
-function closeAdminModal() { modal.classList.remove('active'); }
-function logout() { location.reload(); }
+function closeAdminModal() { document.getElementById('product-modal').classList.remove('active'); }
+function logout() { sessionStorage.removeItem('admin_logged_in'); location.reload(); }
+
+window.onclick = (e) => { 
+    const pModal = document.getElementById('product-modal');
+    const cModal = document.getElementById('category-modal');
+    if (e.target === pModal) closeAdminModal(); 
+    if (e.target === cModal) closeCategoryModal();
+}
