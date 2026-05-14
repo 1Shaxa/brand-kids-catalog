@@ -131,7 +131,7 @@ function openProduct(id) {
     const catName = CATEGORIES.find(c => c.id === p.sub_category)?.name[LANG] || '';
     const sizesText = (p.sizes || []).join(', ');
     const imgUrl = (p.images && p.images.length > 0) ? p.images[0] : p.image;
-    const msg = `Здравствуйте! Интересует товар:\n\n📦 ${p.name[LANG]}\n📂 ${catName}\n📏 Размеры: ${sizesText}\n🔗 Фото: ${imgUrl}\n\nЕсть в наличии?`;
+    const msg = `Assalomu alaykum! Meni quyidagi tovar qiziqtirmoqda:\n\n📦 ${p.name[LANG]}\n📂 ${catName}\n📏 O'lchamlar: ${sizesText}\n🔗 Rasm: ${imgUrl}\n\nBor-yo'qligini aytib bera olasizmi?`;
     tgBtn.href = `https://t.me/k_halimov_a7o1?text=${encodeURIComponent(msg)}`;
     document.getElementById('modal-overlay').classList.add('active');
 }
