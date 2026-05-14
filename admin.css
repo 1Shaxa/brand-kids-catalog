@@ -250,3 +250,75 @@ body {
     height: 100%;
     object-fit: cover;
 }
+
+/* ---- Language Dropdown ---- */
+.lang-dropdown {
+    position: relative;
+    z-index: 200;
+}
+
+.lang-current {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: #fff;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+}
+
+.lang-current:hover {
+    border-color: #000;
+}
+
+.lang-current::after {
+    content: '▼';
+    font-size: 8px;
+    transition: transform 0.2s;
+    color: #999;
+}
+
+.lang-dropdown.active .lang-current::after {
+    transform: rotate(180deg);
+}
+
+.lang-options {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    min-width: 140px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    display: none;
+    flex-direction: column;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.lang-dropdown.active .lang-options {
+    display: flex;
+}
+
+.lang-option {
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border-bottom: 1px solid #f5f5f5;
+    transition: background 0.15s;
+}
+
+.lang-option:last-child {
+    border-bottom: none;
+}
+
+.lang-option:hover {
+    background: #000;
+    color: #fff;
+}
