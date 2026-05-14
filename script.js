@@ -128,7 +128,7 @@ function openProduct(id) {
     document.getElementById('modal-sizes').innerHTML = (p.sizes || []).map(s => `<div style="padding:10px; border:1px solid #eee; font-size:12px;">${s}</div>`).join('');
     
     const tgBtn = document.querySelector('.tg-contact-btn');
-    tgBtn.href = `https://t.me/Brand_kids?text=${encodeURIComponent("Интересует товар: " + p.name[LANG] + " (ID: "+p.id+")")}`;
+    tgBtn.href = `https://t.me/k_halimov_a7o1?text=${encodeURIComponent("Интересует товар: " + p.name[LANG] + " (ID: "+p.id+")")}`;
     document.getElementById('modal-overlay').classList.add('active');
 }
 
