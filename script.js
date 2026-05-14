@@ -152,4 +152,6 @@ window.onclick = (e) => {
     document.getElementById('lang-dropdown').classList.remove('active');
 };
 
+function selectLanguage(lang) { setLanguage(lang); }
+
 loadAppData();
