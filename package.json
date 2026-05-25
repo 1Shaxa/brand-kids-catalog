@@ -1,0 +1,15 @@
+{
+  "name": "brand-kids-bot",
+  "version": "1.0.0",
+  "description": "Telegram bot — auto creates products from channel posts",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
