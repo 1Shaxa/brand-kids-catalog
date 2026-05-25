@@ -8,8 +8,8 @@ try {
     alert("Критическая ошибка: Не удалось подключиться к базе данных.");
 }
 
-const ADMIN_USER = "BrandKidsAdmin_2026";
-const ADMIN_PASS = "BK_Secure_99!_Store";
+// Credentials are verified server-side via /api/admin-verify
+// Do NOT add passwords here
 
 let PRODUCTS = [];
 let CATEGORIES = [];
@@ -38,8 +38,7 @@ function enterDashboard() {
 
 function logout() {
     localStorage.removeItem('admin_logged_forever');
-    document.getElementById('admin-dashboard').style.display = 'none';
-    document.getElementById('login-screen').style.display = 'flex';
+    window.location.href = '/api/admin-logout';
 }
 
 // ── Init & Data ───────────────────────────────────────

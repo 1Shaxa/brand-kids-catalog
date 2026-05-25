@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход | Brand Kids</title>
+    <link rel="icon" type="image/jpeg" href="logo.jpg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+        body {
+            background: #0d0d0d;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-wrap {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 44px 40px;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.5);
+        }
+
+        .brand {
+            font-size: 22px;
+            font-weight: 800;
+            color: #1a1a1a;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+
+        .brand span { color: #c96b8a; }
+
+        .subtitle {
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 32px;
+        }
+
+        label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #7a7a7a;
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid #ebebeb;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            margin-bottom: 20px;
+            outline: none;
+            background: #fafaf7;
+            color: #1a1a1a;
+            transition: border-color 0.2s;
+        }
+
+        input:focus { border-color: #1a1a1a; background: #fff; }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            background: #1a1a1a;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: opacity 0.2s;
+            margin-top: 4px;
+        }
+
+        button:hover { opacity: 0.85; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .error {
+            color: #e84545;
+            font-size: 13px;
+            margin-top: 14px;
+            text-align: center;
+            min-height: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-wrap">
+        <div class="login-card">
+            <div class="brand">Brand<span>Kids</span></div>
+            <p class="subtitle">Панель управления</p>
+
+            <label for="u">Имя пользователя</label>
+            <input type="text" id="u" placeholder="Введите логин" autocomplete="username">
+
+            <label for="p">Пароль</label>
+            <input type="password" id="p" placeholder="Введите пароль" autocomplete="current-password"
+                onkeydown="if(event.key==='Enter') doLogin()">
+
+            <button id="btn" onclick="doLogin()">Войти</button>
+            <p class="error" id="err"></p>
+        </div>
+    </div>
+
+    <script>
+        async function doLogin() {
+            const btn = document.getElementById('btn');
+            const err = document.getElementById('err');
+            const user = document.getElementById('u').value.trim();
+            const pass = document.getElementById('p').value.trim();
+
+            if (!user || !pass) {
+                err.textContent = 'Заполните все поля';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Вход...';
+            err.textContent = '';
+
+            try {
+                const res = await fetch('/api/admin-verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user, pass })
+                });
+
+                if (res.ok) {
+                    window.location.href = '/admin.html';
+                } else {
+                    const data = await res.json();
+                    err.textContent = data.error || 'Ошибка входа';
+                }
+            } catch (e) {
+                err.textContent = 'Ошибка соединения';
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Войти';
+        }
+    </script>
+</body>
+</html>
