@@ -6,14 +6,22 @@ export const config = {
 }
 
 export default function middleware(request) {
-    const cookie = request.cookies.get('bk_admin_session')
+    // Парсим cookie вручную (стандартный Web API, без Next.js)
+    const cookieHeader = request.headers.get('cookie') || '';
+    const cookies = Object.fromEntries(
+        cookieHeader.split(';')
+            .map(c => c.trim().split('='))
+            .filter(([k]) => k)
+            .map(([k, ...v]) => [k.trim(), v.join('=').trim()])
+    );
 
-    // Разрешаем если есть валидная сессионная кука
-    if (cookie?.value === process.env.ADMIN_SESSION_TOKEN) {
-        return // пропускаем
+    const session = cookies['bk_admin_session'];
+    const validToken = process.env.ADMIN_SESSION_TOKEN;
+
+    if (validToken && session === validToken) {
+        return; // кука валидна — пропускаем
     }
 
-    // Иначе — редирект на страницу входа
-    const loginUrl = new URL('/admin-login.html', request.url)
-    return Response.redirect(loginUrl, 302)
+    // Нет сессии — редирект на логин
+    return Response.redirect(new URL('/admin-login.html', request.url), 302);
 }
